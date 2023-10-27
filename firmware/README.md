@@ -14,3 +14,17 @@ cmake -B build
 cmake --build build
 ```
 
+## Install
+
+Hold down the `BOOTSEL` button on the Pico while plugging in the USB cable. 
+It should show up as a USB storage device. Drag-and-drop the uf2 binary from 
+the build directory onto the device. The Pico should automatically restart and 
+run the firmware.
+
+Alternatively, install `picotool` and run:
+
+```bash
+picotool load build/si-printer.uf2 --force
+picotool reboot
+```
+

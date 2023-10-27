@@ -10,8 +10,9 @@ pico_sdk_init()
 
 # Source
 add_executable(si-printer
-    src/main.c)
-target_link_libraries(si-printer pico_stdlib pico_unique_id tinyusb_device)
+    src/main.c
+)
+target_link_libraries(si-printer pico_stdlib pico_unique_id)
 target_include_directories(si-printer PRIVATE ${CMAKE_CURRENT_LIST_DIR})
 # target_compile_definitions(si-printer PRIVATE CFG_TUSB_CONFIG_FILE="chrumm/usb.h")
 
