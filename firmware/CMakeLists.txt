@@ -17,13 +17,14 @@ add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/vendor/Pico-PIO-USB/ pico_pio_usb)
 # Source
 add_executable(si-printer
     src/main.c
-    ./src/usb_descriptors.c
+    src/console.c
     ${PICO_TINYUSB_PATH}/src/portable/raspberrypi/pio_usb/dcd_pio_usb.c
     ${PICO_TINYUSB_PATH}/src/portable/raspberrypi/pio_usb/hcd_pio_usb.c
 )
 target_link_libraries(si-printer pico_stdlib pico_multicore pico_pio_usb tinyusb_device tinyusb_host tinyusb_board)
 target_link_options(si-printer PRIVATE -Xlinker --print-memory-usage)
 target_include_directories(si-printer PRIVATE ${CMAKE_CURRENT_LIST_DIR})
+
 target_compile_definitions(si-printer PRIVATE CFG_TUSB_CONFIG_FILE="src/usb.h")
 target_compile_definitions(si-printer PUBLIC TU_CP210X_PID_LIST=0x800A)
 
