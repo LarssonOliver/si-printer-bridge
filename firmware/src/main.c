@@ -2,12 +2,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "host/usbh.h"
 #include "pico/stdlib.h"
 
+#include "bsp/board.h"
 #include "pio_usb.h"
 #include "tusb.h"
-#include "bsp/board.h"
 
 // REF:
 // https://github.dev/sekigon-gonnoc/Pico-PIO-USB/blob/main/examples/host_hid_to_device_cdc
@@ -19,15 +18,29 @@ int main(void) {
 
   set_sys_clock_khz(120000, true);
 
-  pio_usb_configuration_t pio_config = PIO_USB_DEFAULT_CONFIG;
-  tuh_configure(BOARD_TUH_RHPORT, TUH_CFGID_RPI_PIO_USB_CONFIGURATION,
-                &pio_config);
+  /* pio_usb_configuration_t pio_config = PIO_USB_DEFAULT_CONFIG; */
+  /* tuh_configure(BOARD_TUH_RHPORT, TUH_CFGID_RPI_PIO_USB_CONFIGURATION, */
+  /*               &pio_config); */
 
-  tuh_init(BOARD_TUH_RHPORT);
+  tud_init(BOARD_TUD_RHPORT);
+  /* tuh_init(BOARD_TUH_RHPORT); */
+
+  uint counter = 0;
 
   while (true) {
-    tuh_task();
-    cdc_app_task();
+    tud_task();
+
+    if (++counter > 500) {
+      tud_cdc_write_str("Hello\n");
+      counter -= 500;
+    }
+
+    tud_cdc_write_flush();
+
+    /* tuh_task(); */
+    /* cdc_app_task(); */
+
+    sleep_ms(1);
   }
 
   return 0;
@@ -74,6 +87,8 @@ void cdc_app_task(void) {
   }
 }
 
+void cdc_cb(tuh_xfer_t *xfer);
+
 void tuh_cdc_mount_cb(uint8_t idx) {
   tuh_cdc_itf_info_t itf_info = {0};
   tuh_cdc_itf_get_info(idx, &itf_info);
@@ -81,18 +96,10 @@ void tuh_cdc_mount_cb(uint8_t idx) {
   printf("CDC Interface is mounted: address = %u, itf_num = %u\r\n",
          itf_info.daddr, itf_info.bInterfaceNumber);
 
-#ifdef CFG_TUH_CDC_LINE_CODING_ON_ENUM
-  // CFG_TUH_CDC_LINE_CODING_ON_ENUM must be defined for line coding is set by
-  // tinyusb in enumeration otherwise you need to call tuh_cdc_set_line_coding()
-  // first
-  cdc_line_coding_t line_coding = {0};
-  if (tuh_cdc_get_local_line_coding(idx, &line_coding)) {
-    printf("  Baudrate: %lu, Stop Bits : %u\r\n", line_coding.bit_rate,
-           line_coding.stop_bits);
-    printf("  Parity  : %u, Data Width: %u\r\n", line_coding.parity,
-           line_coding.data_bits);
-  }
-#endif
+  const cdc_line_coding_t line_coding = {38400, CDC_LINE_CONDING_STOP_BITS_1,
+                                         CDC_LINE_CODING_PARITY_NONE, 8};
+
+  tuh_cdc_set_line_coding(idx, &line_coding, cdc_cb, (uintptr_t)NULL);
 }
 
 void tuh_cdc_umount_cb(uint8_t idx) {
@@ -101,4 +108,19 @@ void tuh_cdc_umount_cb(uint8_t idx) {
 
   printf("CDC Interface is unmounted: address = %u, itf_num = %u\r\n",
          itf_info.daddr, itf_info.bInterfaceNumber);
+}
+
+void cdc_cb(tuh_xfer_t *xfer) {
+  printf("xfer cb triggered: %u\n", xfer->daddr);
+}
+
+void tud_cdc_rx_cb(uint8_t itf)
+{
+  (void) itf;
+
+  char buf[64];
+  uint32_t count = tud_cdc_read(buf, sizeof(buf));
+
+  // TODO control LED on keyboard of host stack
+  (void) count;
 }
