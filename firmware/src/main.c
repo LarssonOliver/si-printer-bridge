@@ -18,6 +18,7 @@
 
 void cdc_app_task(void);
 
+
 void core1_main(void) {
   sleep_ms(10);
 
@@ -391,4 +392,10 @@ void tuh_cdc_rx_cb(uint8_t idx) {
     cdc_printf("%02x", buf[i]);
 
   cdc_printf("\r\n");
+
+  uint8_t obuf[2] = { 0xff, 0x06 };
+  if (buf[1] == 0xe5) {
+    tuh_cdc_write(idx, obuf, 2);
+    tuh_cdc_write_flush(idx);
+  }
 }
