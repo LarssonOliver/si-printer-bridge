@@ -4,3 +4,6 @@
 [submodule "firmware/vendor/Pico-PIO-USB"]
 	path = firmware/vendor/Pico-PIO-USB
 	url = https://github.com/sekigon-gonnoc/Pico-PIO-USB.git
+[submodule "firmware/vendor/tinyusb"]
+	path = firmware/vendor/tinyusb
+	url = https://github.com/hathach/tinyusb

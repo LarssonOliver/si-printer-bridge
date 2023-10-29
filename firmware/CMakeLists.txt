@@ -7,6 +7,9 @@ include(${CMAKE_CURRENT_LIST_DIR}/vendor/pico-sdk/pico_sdk_init.cmake)
 project(si-printer VERSION 1.0.0)
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
+set(PICO_TINYUSB_PATH ${CMAKE_CURRENT_LIST_DIR}/vendor/tinyusb)
+
 pico_sdk_init()
 
 add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/vendor/Pico-PIO-USB/ pico_pio_usb)
