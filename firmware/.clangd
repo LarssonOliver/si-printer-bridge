@@ -1,3 +1,4 @@
 CompileFlags:
   Add:
     - "--sysroot=/usr/arm-none-eabi/"
+    - "--sysroot=/Applications/ArmGNUToolchain/12.3.rel1/arm-none-eabi/arm-none-eabi/"

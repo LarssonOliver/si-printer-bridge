@@ -20,7 +20,6 @@
 
 void cdc_app_task(void);
 
-
 void core1_main(void) {
   sleep_ms(10);
 
@@ -69,7 +68,7 @@ void tuh_cdc_mount_cb(uint8_t idx) {
   tuh_cdc_itf_get_info(idx, &itf_info);
 
   console_printf("CDC Interface is mounted: address = %u, itf_num = %u\r\n",
-             itf_info.daddr, itf_info.desc.bInterfaceNumber);
+                 itf_info.daddr, itf_info.desc.bInterfaceNumber);
 
   tuh_cdc_set_baudrate(idx, 38400, NULL, 0);
   tuh_cdc_set_control_line_state(idx, 0b11, NULL, 0);
@@ -81,7 +80,7 @@ void tuh_cdc_umount_cb(uint8_t idx) {
   tuh_cdc_itf_get_info(idx, &itf_info);
 
   console_printf("CDC Interface is unmounted: address = %u, itf_num = %u\r\n",
-             itf_info.daddr, itf_info.desc.bInterfaceNumber);
+                 itf_info.daddr, itf_info.desc.bInterfaceNumber);
 }
 
 void tuh_cdc_rx_cb(uint8_t idx) {
@@ -98,7 +97,7 @@ void tuh_cdc_rx_cb(uint8_t idx) {
 
   console_printf("\r\n");
 
-  uint8_t obuf[2] = { 0xff, 0x06 };
+  uint8_t obuf[2] = {0xff, 0x06};
   if (buf[1] == 0xe5) {
     tuh_cdc_write(idx, obuf, 2);
     tuh_cdc_write_flush(idx);
