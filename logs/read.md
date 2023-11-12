@@ -33,6 +33,17 @@ Stick: 426173
 ## Raw
 
 ```text
+0: Received 12 bytes: 02e506000b0004663d838903
+0: Wrote 7 bytes: ff02b100b10003
+0: Received 64 bytes: 02b182000baafefefe663d0400000000000000000065663d14cb1de2075614152804a70007001f15b85516f12818992a1a532c1c1f00601d3a00eeee00eeee00
+0: Received 0 bytes:
+0: Received 64 bytes: eeee00eeee0000eeee00eeee00eeee00eeee00eeee0000eeee00eeee00eeee00eeee00eeee0000eeee00eeee00eeee00eeee00eeee0000eeee00eeee00eeee00
+0: Received 0 bytes:
+0: Received 8 bytes: eeee00eeeea2e503
+0: Received 12 bytes: 02e706000b0004663da38503
+```
+
+```text
 C2H: 02 b'\x02'
 C2H: e5 b'\xe5'
 C2H: 06 b'\x06'
@@ -48,9 +59,9 @@ C2H: 03 b'\x03'
 H2C: ff b'\xff'
 H2C: 02 b'\x02'
 H2C: b1 b'\xb1'
-H2C: 00 b'\x00'
-H2C: b1 b'\xb1'
-H2C: 00 b'\x00'
+H2c: 00 b'\x00'
+h2c: b1 b'\xb1'
+h2C: 00 b'\x00'
 H2C: 03 b'\x03'
 C2H: 02 b'\x02'
 C2H: b1 b'\xb1'
