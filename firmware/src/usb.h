@@ -29,7 +29,8 @@
 
 #define CFG_TUH_MEM_ALIGN __attribute__((aligned(4)))
 
-#define CP210X_PID_LIST 0xEA60, 0xEA70, 0x800A
+#define CFG_TUH_CDC_CP210X_PID_LIST \
+  0xEA60, 0xEA70, 0x800A
 
 #define BOARD_TUD_RHPORT 0
 #define BOARD_TUH_RHPORT CFG_TUH_RPI_PIO_USB

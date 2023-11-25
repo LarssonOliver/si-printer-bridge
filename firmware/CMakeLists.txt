@@ -27,7 +27,6 @@ target_link_options(si-printer PRIVATE -Xlinker --print-memory-usage)
 target_include_directories(si-printer PRIVATE ${CMAKE_CURRENT_LIST_DIR})
 
 target_compile_definitions(si-printer PRIVATE CFG_TUSB_CONFIG_FILE="src/usb.h")
-target_compile_definitions(si-printer PUBLIC TU_CP210X_PID_LIST=0x800A)
 
 # Binary
 pico_set_program_version(si-printer "${PROJECT_VERSION}")
