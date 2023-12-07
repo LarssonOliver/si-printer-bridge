@@ -2,6 +2,9 @@
 
 Firmware written in C built for the Raspberry Pi Pico.
 
+Much of the reverse engineering is based on
+[sportident-python](https://github.com/per-magnusson/sportident-python).
+
 ## Compile
 
 To compile a custom version, install the Pico SDK and Arm GNU Toolchain.
@@ -16,9 +19,9 @@ cmake --build build
 
 ## Install
 
-Hold down the `BOOTSEL` button on the Pico while plugging in the USB cable. 
-It should show up as a USB storage device. Drag-and-drop the uf2 binary from 
-the build directory onto the device. The Pico should automatically restart and 
+Hold down the `BOOTSEL` button on the Pico while plugging in the USB cable.
+It should show up as a USB storage device. Drag-and-drop the uf2 binary from
+the build directory onto the device. The Pico should automatically restart and
 run the firmware.
 
 Alternatively, install `picotool` and run:
