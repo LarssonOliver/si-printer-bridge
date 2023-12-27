@@ -4,7 +4,7 @@
 #include "sportident.h"
 
 // Compute CRC checksum for a given command
-static uint16_t crc(uint8_t len, uint8_t command[]) {
+static uint16_t crc(const uint8_t len, const uint8_t command[]) {
 
   if (len < 1)
     return 0x0000;
@@ -51,7 +51,9 @@ static uint16_t crc(uint8_t len, uint8_t command[]) {
 }
 
 // Validate the crc checksum of a command
-static int check_crc(uint8_t len, uint8_t command[], uint16_t expected_crc) {
+__attribute__((unused)) static int check_crc(const uint8_t len,
+                                             const uint8_t command[],
+                                             const uint16_t expected_crc) {
   return crc(len, command) == expected_crc;
 }
 
@@ -80,7 +82,7 @@ static int check_crc(uint8_t len, uint8_t command[], uint16_t expected_crc) {
  * (500'000 = 0x07A120 > 0x04FFFF = 465'535 = highest technically possible value
  * on a SI5)
  */
-static int decode_cardnr(uint8_t cardnr[4]) {
+static int decode_cardnr(const uint8_t cardnr[4]) {
 
   if (cardnr[0] != 0)
     return -1;
@@ -99,3 +101,12 @@ static int decode_cardnr(uint8_t cardnr[4]) {
   return number;
 }
 
+// Decode data read from a card
+__attribute__((unused)) static void decode_carddata(const uint8_t *const data,
+                                                    const card_t card) {
+
+  const uint8_t cardnr_raw[] = {0x00, data[card[CN2]], data[card[CN1]],
+                                data[card[CN0]]};
+
+  __attribute__((unused)) const int cardnr = decode_cardnr(cardnr_raw);
+}
