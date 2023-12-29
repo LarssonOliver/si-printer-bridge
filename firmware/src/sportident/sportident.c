@@ -101,12 +101,70 @@ static int decode_cardnr(const uint8_t cardnr[4]) {
   return number;
 }
 
+// Decode the number of a station.
+// On some newer stations, two additional bits are stored in the PTD byte.
+static int decode_station_number(const uint8_t raw, const uint8_t ptd) {
+  if (ptd == 0x00)
+    return (int)raw;
+
+  return (((int)ptd & 0xC0) << 2) | raw;
+}
+
 // Decode data read from a card
 __attribute__((unused)) static void decode_carddata(const uint8_t *const data,
                                                     const card_t card) {
 
-  const uint8_t cardnr_raw[] = {0x00, data[card[CN2]], data[card[CN1]],
-                                data[card[CN0]]};
-
+  const uint8_t cardnr_raw[] = {0x00, data[card[F_CN2]], data[card[F_CN1]],
+                                data[card[F_CN0]]};
   __attribute__((unused)) const int cardnr = decode_cardnr(cardnr_raw);
+
+  uint8_t time_raw = card[F_STD] != F_NONE ? data[card[F_STD]] : 0x00;
+  // const time start_time
+  uint8_t station_raw = card[F_SN] != F_NONE ? data[card[F_SN]] : 0x00;
+  __attribute__((unused)) const int start_station =
+      decode_station_number(station_raw, time_raw);
+
+  time_raw = card[F_FTD] != F_NONE ? data[card[F_FTD]] : 0x00;
+  // const time start_time
+  station_raw = card[F_FN] != F_NONE ? data[card[F_FN]] : 0x00;
+  __attribute__((unused)) const int finish_station =
+      decode_station_number(station_raw, time_raw);
+
+  time_raw = card[F_CTD] != F_NONE ? data[card[F_CTD]] : 0x00;
+  // const time start_time
+  station_raw = card[F_CHN] != F_NONE ? data[card[F_CHN]] : 0x00;
+  __attribute__((unused)) const int check_station =
+      decode_station_number(station_raw, time_raw);
+
+  if (card[F_LT] != F_NONE) {
+    // SI 5 and 9 cannot store clear time.
+
+    time_raw = card[F_LTD] != F_NONE ? data[card[F_LTD]] : 0x00;
+    // const time start_time
+    station_raw = card[F_LN] != F_NONE ? data[card[F_LN]] : 0x00;
+    __attribute__((unused)) const int check_station =
+        decode_station_number(station_raw, time_raw);
+  }
+
+  uint8_t record_count = data[card[F_RC]];
+  if (card == SI5) {
+    // F_RC is the index of the next record on SI5
+    record_count--;
+  }
+
+  if (record_count > card[F_PM]) {
+    // If there are more records than the max allowed
+    record_count = card[F_PM];
+  }
+
+  unsigned int i = card[F_P1];
+  for (unsigned int p = 0; p < record_count; p++) {
+
+    if (card == SI5 && i % 16 == 0)
+      i++;
+
+    // TODO
+
+    i += card[F_PL];
+  }
 }
