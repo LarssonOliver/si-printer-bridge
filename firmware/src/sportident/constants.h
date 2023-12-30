@@ -2,6 +2,20 @@
 
 #include <stdint.h>
 
+// Common control codes
+#define STX 0x02    // Start of transmission
+#define ETX 0x03    // End of transmission
+#define ACK 0x06    // Acknowledge (beep until card removed)
+#define NAK 0x15    // Not acknowledge
+#define DLE 0x10    // Data link escape
+#define WAKEUP 0xFF // This byte is sent first to the station
+
+// Protocol commands
+#define C_SI5_DET 0xE5 // Detect SI5 (inserted)
+#define C_SI6_DET 0xE6 // Detect SI6 (inserted)
+#define C_SI9_DET 0xE8 // Detect SI6 (inserted)
+#define C_SI_REM 0xE7  // SI card removed
+
 #define CRC_BITF 0x8000
 #define CRC_POLY 0x8005
 
@@ -32,38 +46,14 @@ enum card_field {
   F_BC,      // number of blocks on card
 };
 
-typedef uint8_t card_t[24];
-
+// Field does not exist on this card type
 #define F_NONE 0xFF
 
-const card_t SI5 = {
-    6,  4,      5,      F_NONE, F_NONE, 19,     F_NONE, F_NONE,
-    21, F_NONE, F_NONE, 25,     F_NONE, F_NONE, F_NONE, 23,
-    32, 3,      30,     0,      F_NONE, 1,      2,      F_NONE,
-};
+typedef uint8_t card_def_t[24];
 
-const card_t SI6 = {
-    11, 12, 13, 24, 25,  26, 20, 21, 22, 28, 29, 30,
-    32, 33, 34, 18, 128, 4,  64, 0,  1,  2,  3,  F_NONE,
-};
-
-const card_t SI8 = {
-    25,     26,     27,     12, 13,  14, 16, 17, 18, 8, 9, 10,
-    F_NONE, F_NONE, F_NONE, 22, 136, 4,  50, 0,  1,  2, 3, 2,
-};
-
-const card_t SI9 = {
-    25,     26,     27,     12, 13, 14, 16, 17, 18, 8, 9, 10,
-    F_NONE, F_NONE, F_NONE, 22, 56, 4,  50, 0,  1,  2, 3, 2,
-};
-
-const card_t pCard = {
-    25,     26,     27,     12, 13,  14, 16, 17, 18, 8, 9, 10,
-    F_NONE, F_NONE, F_NONE, 22, 176, 4,  20, 0,  1,  2, 3, 2,
-};
-
-// Also SI11
-const card_t SI10 = {
-    25,     26,     27,     12, 13,  14, 16, 17, 18, 8, 9, 10,
-    F_NONE, F_NONE, F_NONE, 22, 128, 4,  64, 0,  1,  2, 3, 8,
-};
+extern const card_def_t SI5;
+extern const card_def_t SI6;
+extern const card_def_t SI8;
+extern const card_def_t SI9;
+extern const card_def_t pCard;
+extern const card_def_t SI10; // Also SI11

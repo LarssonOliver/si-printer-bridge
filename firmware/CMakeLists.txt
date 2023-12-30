@@ -20,6 +20,7 @@ add_executable(si-printer
     src/console.c
     src/devices.c
     src/sportident/sportident.c
+    src/sportident/constants.c
     ${PICO_TINYUSB_PATH}/src/portable/raspberrypi/pio_usb/dcd_pio_usb.c
     ${PICO_TINYUSB_PATH}/src/portable/raspberrypi/pio_usb/hcd_pio_usb.c
 )

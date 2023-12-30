@@ -1,7 +1,96 @@
+#include <stdint.h>
 #include <string.h>
 
 #include "constants.h"
 #include "sportident.h"
+
+// Static function prototypes
+static uint16_t crc(const uint8_t len, const uint8_t command[]);
+static int crc_check(const uint8_t len, const uint8_t command[],
+                     const uint16_t expected_crc);
+
+static int decode_cardnr(const uint8_t cardnr[4]);
+
+// Decodes a reply form a station.
+// Returns 0 on success, -1 on failure.
+int decode_station_reply(const uint8_t *const buf,
+                         station_reply_t *const reply) {
+  if (buf == NULL || reply == NULL)
+    return -1;
+
+  const uint8_t *ptr = buf;
+
+  if (*ptr == WAKEUP)
+    ptr++;
+
+  if (*ptr++ != STX)
+    return -1;
+
+  const uint8_t *command_start = ptr;
+
+  const uint8_t command = *ptr++;
+  const uint8_t len = *ptr++;
+  // const uint8_t station[2] = {*ptr, *ptr + 1};
+  ptr += 2;
+
+  const uint8_t data_len = len - 2;
+  const uint8_t *data = ptr;
+  ptr += data_len;
+
+  const uint16_t crc = *ptr << 8 | *(ptr + 1);
+  ptr += 2;
+
+  if (*ptr != ETX)
+    return -1;
+
+  if (!crc_check(sizeof(command) + sizeof(len) + len, command_start, crc))
+    return -1;
+
+  reply->command_code = command;
+  reply->data_len = data_len;
+  memcpy(reply->data, data, data_len);
+
+  return 0;
+}
+
+// Decodes information of an inserted card.
+// Returns 0 on success, -1 on failure.
+int decode_si_det(const station_reply_t *const reply, si_card_t *const out) {
+  if (reply == NULL || out == NULL)
+    return -1;
+
+  if (reply->data_len != 4)
+    return -1;
+
+  uint8_t data[4] = {reply->data[0], reply->data[1], reply->data[2],
+                     reply->data[3]};
+
+  if (reply->command_code == C_SI9_DET)
+    data[0] = 0x00;
+
+  out->card_number = decode_cardnr(data);
+
+  if (reply->command_code == C_SI5_DET) {
+    out->card = &SI5;
+  } else if (reply->command_code == C_SI6_DET) {
+    out->card = &SI6;
+  } else if (reply->command_code == C_SI9_DET) {
+    if (out->card_number >= 2000000 && out->card_number < 3000000)
+      out->card = &SI8;
+    else if (out->card_number >= 1000000 && out->card_number < 2000000)
+      out->card = &SI9;
+    else if (out->card_number >= 4000000 && out->card_number < 5000000)
+      out->card = &pCard;
+    else if (out->card_number >= 7000000 && out->card_number < 10000000)
+      out->card = &SI10;
+    else
+      return -1;
+  } else {
+    return -1;
+  }
+
+  return 0;
+}
 
 // Compute CRC checksum for a given command
 static uint16_t crc(const uint8_t len, const uint8_t command[]) {
@@ -51,9 +140,8 @@ static uint16_t crc(const uint8_t len, const uint8_t command[]) {
 }
 
 // Validate the crc checksum of a command
-__attribute__((unused)) static int check_crc(const uint8_t len,
-                                             const uint8_t command[],
-                                             const uint16_t expected_crc) {
+static int crc_check(const uint8_t len, const uint8_t command[],
+                     const uint16_t expected_crc) {
   return crc(len, command) == expected_crc;
 }
 
@@ -92,10 +180,8 @@ static int decode_cardnr(const uint8_t cardnr[4]) {
   if (number < 500000) {
     number &= 0xFFFF;
 
-    if (cardnr[1] < 2)
-      return number;
-
-    return cardnr[1] * 100000 + number;
+    if (cardnr[1] >= 2)
+      number += cardnr[1] * 100000;
   }
 
   return number;
@@ -112,7 +198,7 @@ static int decode_station_number(const uint8_t raw, const uint8_t ptd) {
 
 // Decode data read from a card
 __attribute__((unused)) static void decode_carddata(const uint8_t *const data,
-                                                    const card_t card) {
+                                                    const card_def_t card) {
 
   const uint8_t cardnr_raw[] = {0x00, data[card[F_CN2]], data[card[F_CN1]],
                                 data[card[F_CN0]]};
