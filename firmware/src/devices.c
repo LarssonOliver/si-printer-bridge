@@ -49,7 +49,7 @@ void tuh_cdc_mount_cb(uint8_t idx) {
 }
 
 void tuh_cdc_rx_cb(uint8_t idx) {
-  uint8_t buf[CFG_TUD_CDC_RX_BUFSIZE];
+  uint8_t buf[CFG_TUD_CDC_EP_BUFSIZE];
   unsigned int bufsize = sizeof(buf);
 
   if (!tuh_cdc_mounted(idx) || tuh_cdc_read_available(idx) == 0)
@@ -58,6 +58,9 @@ void tuh_cdc_rx_cb(uint8_t idx) {
   // Read received data
   uint32_t count = tuh_cdc_read(idx, buf, bufsize);
   console_printf("Received %u bytes: ", (unsigned int)count);
+  for (uint i = 0; i < count; i++)
+    console_printf("%02x", buf[i]);
+  console_printf("\r\n");
 
   if (input_callback != NULL)
     input_callback(buf, count);
