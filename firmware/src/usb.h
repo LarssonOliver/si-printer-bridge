@@ -11,7 +11,9 @@
 
 #define CFG_TUD_CDC_RX_BUFSIZE 512
 #define CFG_TUD_CDC_TX_BUFSIZE 512
-#define CFG_TUD_CDC_EP_BUFSIZE 512
+
+// The USB device is not recognized if this is larger.
+#define CFG_TUD_CDC_EP_BUFSIZE 64
 
 // HOST
 
