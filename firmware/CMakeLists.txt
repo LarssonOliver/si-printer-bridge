@@ -16,11 +16,12 @@ add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/vendor/Pico-PIO-USB/ pico_pio_usb)
 
 # Source
 add_executable(si-printer
-    src/main.c
-    src/console.c
-    src/devices.c
-    src/sportident/sportident.c
-    src/sportident/constants.c
+    ./src/main.c
+    ./src/console.c
+    ./src/devices.c
+    ./src/data_processor.c
+    ./src/sportident/sportident.c
+    ./src/sportident/constants.c
     ${PICO_TINYUSB_PATH}/src/portable/raspberrypi/pio_usb/dcd_pio_usb.c
     ${PICO_TINYUSB_PATH}/src/portable/raspberrypi/pio_usb/hcd_pio_usb.c
 )

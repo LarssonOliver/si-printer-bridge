@@ -30,7 +30,11 @@ int decode_station_reply(const uint8_t *const buf,
 
   const uint8_t command = *ptr++;
   const uint8_t len = *ptr++;
-  // const uint8_t station[2] = {*ptr, *ptr + 1};
+
+#if 0
+  // I don't need the station id of the readout station.
+  const uint8_t station[2] = {*ptr, *ptr + 1};
+#endif
   ptr += 2;
 
   const uint8_t data_len = len - 2;
