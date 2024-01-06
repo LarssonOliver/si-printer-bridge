@@ -11,10 +11,11 @@
 #define WAKEUP 0xFF // This byte is sent first to the station
 
 // Protocol commands
-#define C_SI5_DET 0xE5 // Detect SI5 (inserted)
-#define C_SI6_DET 0xE6 // Detect SI6 (inserted)
-#define C_SI9_DET 0xE8 // Detect SI6 (inserted)
-#define C_SI_REM 0xE7  // SI card removed
+#define C_SI5_DET 0xE5  // Detect SI5 (inserted)
+#define C_SI6_DET 0xE6  // Detect SI6 (inserted)
+#define C_SI9_DET 0xE8  // Detect SI6 (inserted)
+#define C_SI_REM 0xE7   // SI card removed
+#define C_GET_TIME 0xF7 // Get station time
 
 #define CRC_BITF 0x8000
 #define CRC_POLY 0x8005

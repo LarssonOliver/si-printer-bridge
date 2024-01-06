@@ -5,16 +5,16 @@
 #include "sportident.h"
 
 // Static function prototypes
-static uint16_t crc(const uint8_t len, const uint8_t command[]);
-static int crc_check(const uint8_t len, const uint8_t command[],
+static uint16_t crc(const uint8_t *command, const uint8_t len);
+static int crc_check(const uint8_t *command, const uint8_t len,
                      const uint16_t expected_crc);
 
 static int decode_cardnr(const uint8_t cardnr[4]);
 
 // Decodes a reply form a station.
 // Returns 0 on success, -1 on failure.
-int decode_station_reply(const uint8_t *const buf,
-                         station_reply_t *const reply) {
+int si_decode_station_reply(const uint8_t *const buf,
+                            si_station_reply_t *const reply) {
   if (buf == NULL || reply == NULL)
     return -1;
 
@@ -47,7 +47,7 @@ int decode_station_reply(const uint8_t *const buf,
   if (*ptr != ETX)
     return -1;
 
-  if (!crc_check(sizeof(command) + sizeof(len) + len, command_start, crc))
+  if (!crc_check(command_start, sizeof(command) + sizeof(len) + len, crc))
     return -1;
 
   reply->command_code = command;
@@ -59,7 +59,7 @@ int decode_station_reply(const uint8_t *const buf,
 
 // Decodes information of an inserted card.
 // Returns 0 on success, -1 on failure.
-int decode_si_det(const station_reply_t *const reply, si_card_t *const out) {
+int si_decode_det(const si_station_reply_t *const reply, si_card_t *const out) {
   if (reply == NULL || out == NULL)
     return -1;
 
@@ -75,18 +75,18 @@ int decode_si_det(const station_reply_t *const reply, si_card_t *const out) {
   out->card_number = decode_cardnr(data);
 
   if (reply->command_code == C_SI5_DET) {
-    out->card = &SI5;
+    out->card_def = &SI5;
   } else if (reply->command_code == C_SI6_DET) {
-    out->card = &SI6;
+    out->card_def = &SI6;
   } else if (reply->command_code == C_SI9_DET) {
     if (out->card_number >= 2000000 && out->card_number < 3000000)
-      out->card = &SI8;
+      out->card_def = &SI8;
     else if (out->card_number >= 1000000 && out->card_number < 2000000)
-      out->card = &SI9;
+      out->card_def = &SI9;
     else if (out->card_number >= 4000000 && out->card_number < 5000000)
-      out->card = &pCard;
+      out->card_def = &pCard;
     else if (out->card_number >= 7000000 && out->card_number < 10000000)
-      out->card = &SI10;
+      out->card_def = &SI10;
     else
       return -1;
   } else {
@@ -96,8 +96,40 @@ int decode_si_det(const station_reply_t *const reply, si_card_t *const out) {
   return 0;
 }
 
+// Generates a command to send to the station.
+// Returns the length of the command on success, -1 on failure.
+int si_build_command(uint8_t command_code, const uint8_t *params,
+                     uint8_t params_len, uint8_t *out, uint8_t out_size) {
+  if (out == NULL)
+    return -1;
+
+  if (params_len > 0 && params == NULL)
+    return -1;
+
+  // WAKEUP + STX + CMD + LEN + PARAMS + CRC + ETX
+  const int command_length = 1 + 1 + 1 + 1 + params_len + 2 + 1;
+  if (out_size < command_length)
+    return -1;
+
+  out[0] = WAKEUP;
+  out[1] = STX;
+  out[2] = command_code;
+  out[3] = params_len;
+
+  if (params_len > 0)
+    memcpy(out + 4, params, params_len);
+
+  // CMD + LEN + PARAMS
+  const uint16_t checksum = crc(out + 2, 1 + 1 + params_len);
+  out[4 + params_len] = checksum >> 8;
+  out[5 + params_len] = checksum & 0xFF;
+  out[6 + params_len] = ETX;
+
+  return command_length;
+}
+
 // Compute CRC checksum for a given command
-static uint16_t crc(const uint8_t len, const uint8_t command[]) {
+static uint16_t crc(const uint8_t *command, const uint8_t len) {
 
   if (len < 1)
     return 0x0000;
@@ -144,9 +176,9 @@ static uint16_t crc(const uint8_t len, const uint8_t command[]) {
 }
 
 // Validate the crc checksum of a command
-static int crc_check(const uint8_t len, const uint8_t command[],
+static int crc_check(const uint8_t *command, const uint8_t len,
                      const uint16_t expected_crc) {
-  return crc(len, command) == expected_crc;
+  return crc(command, len) == expected_crc;
 }
 
 /**
