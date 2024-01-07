@@ -26,7 +26,6 @@
 #define CFG_TUH_DEVICE_MAX (CFG_TUH_HUB ? 4 : 1)
 
 #define CFG_TUH_CDC 1
-#define CFG_TUH_CDC_FTDI 1
 #define CFG_TUH_CDC_CP210X 1
 
 #define CFG_TUH_MEM_ALIGN __attribute__((aligned(4)))
