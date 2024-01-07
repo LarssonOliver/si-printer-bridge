@@ -1,7 +1,6 @@
 #include <tusb.h>
 #include <pico/multicore.h>
 #include <pico/stdlib.h>
-#include <hardware/rtc.h>
 
 #include "console.h"
 #include "devices.h"
@@ -41,29 +40,9 @@ int main(void) {
 
   console_init();
 
-  rtc_init();
-  datetime_t t = {
-    .year = 2024,
-    .month = 1,
-    .day = 6,
-    .dotw = 6,
-    .hour = 11,
-    .min = 20,
-    .sec = 00
-  };
-  rtc_set_datetime(&t);
-
-  int i = 0;
-
   while (true) {
     console_tick();
     sleep_ms(1);
-
-    if (i++ % 1000 == 0) {
-      bool test = rtc_get_datetime(&t);
-      console_printf("%d %02d:%02d:%02d %04d-%02d-%02d\r\n", test, t.hour, t.min, t.sec, t.year, t.month, t.day);
-      i -= 1000;
-    }
   }
 
   return 0;
