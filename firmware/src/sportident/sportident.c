@@ -128,13 +128,74 @@ int si_build_command(uint8_t command_code, const uint8_t *params,
   return command_length;
 }
 
+// Generates a command to read the card.
+// Returns the length of the command on success, -1 on failure.
+int si_build_read_command(si_card_t *card, uint8_t *out, uint8_t out_size) {
+  if (card == NULL || card->card_def == NULL || out == NULL)
+    return -1;
+
+  if (card->card_def == &SI5)
+    return si_build_command(C_GET_SI5, NULL, 0, out, out_size);
+
+  if (card->card_def == &SI6) {
+    uint8_t params[] = {P_SI6_CB};
+    return si_build_command(C_GET_SI6, params, sizeof(params), out, out_size);
+  }
+
+  if (card->card_def == &SI8 || card->card_def == &SI9 ||
+      card->card_def == &pCard) {
+    uint8_t params[] = {0};
+    return si_build_command(C_GET_SI9, params, sizeof(params), out, out_size);
+  }
+
+  if (card->card_def == &SI10) {
+    uint8_t params[] = {P_SI6_CB};
+    return si_build_command(C_GET_SI9, params, sizeof(params), out, out_size);
+  }
+
+  return -1;
+}
+
+// Generates the next command in the sequence.
+// Modifies the command in place.
+// Returns the length of the command on success, -1 on failure, 0 on end of
+// sequence.
+int si_build_next_read_command(si_card_t *card, uint8_t *command,
+                               uint8_t buffer_size) {
+  if (command == NULL)
+    return -1;
+
+  const uint8_t command_code = command[2];
+
+  if (command_code != C_GET_SI9)
+    return 0;
+
+  const uint8_t last_block = command[4];
+
+  if (last_block == P_SI6_CB)
+    // Used for SI10 and SI11 cards.
+    return 0;
+
+  if (last_block + 1 == (*card->card_def)[F_BC])
+    return 0;
+
+  const uint8_t params[] = {last_block + 1};
+
+  return si_build_command(command_code, params, sizeof(params), command,
+                          buffer_size);
+}
+
 // Compute CRC checksum for a given command
 static uint16_t crc(const uint8_t *command, const uint8_t len) {
 
   if (len < 1)
     return 0x0000;
 
-  const int padding = len % 2 == 0 ? 2 : 1;
+  int padding = len % 2;
+  if (len > 2 && padding == 0)
+    // I don't understand why...
+    padding = 2;
+
   const int padded_len = len + padding;
 
   uint8_t buf[padded_len];
@@ -232,40 +293,76 @@ static int decode_station_number(const uint8_t raw, const uint8_t ptd) {
   return (((int)ptd & 0xC0) << 2) | raw;
 }
 
-// Decode data read from a card
-__attribute__((unused)) static void decode_carddata(const uint8_t *const data,
-                                                    const card_def_t card) {
+// Decode a time from a raw value.
+// Returns 0 on success, -1 on failure.
+static int decode_time(const uint16_t raw, si_time_t *out) {
+  if (out == NULL)
+    return 0;
+
+  (void)raw;
+  return 0;
+}
+
+// Decodes a punch.
+// Returns 0 on success, -1 on failure.
+static int decode_punch(const uint8_t *punch_time_day,
+                        const uint8_t *punch_time, const uint8_t *station,
+                        si_punch_t *const out) {
+
+  if (out == NULL || punch_time == NULL || station == NULL)
+    return -1;
+
+  const uint8_t time_day = punch_time_day == NULL ? 0 : *punch_time_day;
+  const int station_code = decode_station_number(*station, time_day);
+
+  si_time_t time;
+  if (decode_time(punch_time[0] << 8 | punch_time[1], &time))
+    return -1;
+
+  out->station = station_code;
+  memcpy(&out->time, &time, sizeof(time));
+
+  return 0;
+}
+
+// Decodes a card readout. The decoded data is stored in out.
+// Returns 0 on success, -1 on failure.
+int si_decode_carddata(const si_card_def_t card, const uint8_t *data,
+                       si_card_readout_t *const out) {
+
+  if (card == NULL || data == NULL || out == NULL)
+    return -1;
 
   const uint8_t cardnr_raw[] = {0x00, data[card[F_CN2]], data[card[F_CN1]],
                                 data[card[F_CN0]]};
-  __attribute__((unused)) const int cardnr = decode_cardnr(cardnr_raw);
+  out->card_number = decode_cardnr(cardnr_raw);
 
-  uint8_t time_raw = card[F_STD] != F_NONE ? data[card[F_STD]] : 0x00;
-  // const time start_time
-  uint8_t station_raw = card[F_SN] != F_NONE ? data[card[F_SN]] : 0x00;
-  __attribute__((unused)) const int start_station =
-      decode_station_number(station_raw, time_raw);
+  // Start
+  const uint8_t *time_day = card[F_STD] != F_NONE ? &data[card[F_STD]] : NULL;
+  const uint8_t *time = card[F_ST] != F_NONE ? &data[card[F_ST]] : NULL;
+  const uint8_t *station = card[F_SN] != F_NONE ? &data[card[F_SN]] : NULL;
+  decode_punch(time_day, time, station, &out->start);
 
-  time_raw = card[F_FTD] != F_NONE ? data[card[F_FTD]] : 0x00;
-  // const time start_time
-  station_raw = card[F_FN] != F_NONE ? data[card[F_FN]] : 0x00;
-  __attribute__((unused)) const int finish_station =
-      decode_station_number(station_raw, time_raw);
+  // Finish
+  time_day = card[F_FTD] != F_NONE ? &data[card[F_FTD]] : NULL;
+  time = card[F_FT] != F_NONE ? &data[card[F_FT]] : NULL;
+  station = card[F_FN] != F_NONE ? &data[card[F_FN]] : NULL;
+  decode_punch(time_day, time, station, &out->finish);
 
-  time_raw = card[F_CTD] != F_NONE ? data[card[F_CTD]] : 0x00;
-  // const time start_time
-  station_raw = card[F_CHN] != F_NONE ? data[card[F_CHN]] : 0x00;
-  __attribute__((unused)) const int check_station =
-      decode_station_number(station_raw, time_raw);
+  // Check
+  time_day = card[F_CTD] != F_NONE ? &data[card[F_CTD]] : NULL;
+  time = card[F_CT] != F_NONE ? &data[card[F_CT]] : NULL;
+  station = card[F_CHN] != F_NONE ? &data[card[F_CHN]] : NULL;
+  decode_punch(time_day, time, station, &out->check);
 
+  // Clear
   if (card[F_LT] != F_NONE) {
-    // SI 5 and 9 cannot store clear time.
+    // SI 5 and 9 do not store clear time.
 
-    time_raw = card[F_LTD] != F_NONE ? data[card[F_LTD]] : 0x00;
-    // const time start_time
-    station_raw = card[F_LN] != F_NONE ? data[card[F_LN]] : 0x00;
-    __attribute__((unused)) const int check_station =
-        decode_station_number(station_raw, time_raw);
+    time_day = card[F_LTD] != F_NONE ? &data[card[F_LTD]] : NULL;
+    time = card[F_LT] != F_NONE ? &data[card[F_LT]] : NULL;
+    station = card[F_LN] != F_NONE ? &data[card[F_LN]] : NULL;
+    decode_punch(time_day, time, station, &out->clear);
   }
 
   uint8_t record_count = data[card[F_RC]];
@@ -279,14 +376,21 @@ __attribute__((unused)) static void decode_carddata(const uint8_t *const data,
     record_count = card[F_PM];
   }
 
+  out->punch_count = record_count;
+
   unsigned int i = card[F_P1];
   for (unsigned int p = 0; p < record_count; p++) {
 
     if (card == SI5 && i % 16 == 0)
       i++;
 
-    // TODO
+    time_day = card[F_PTD] != F_NONE ? &data[card[F_PTD] + i] : NULL;
+    time = card[F_PTH] != F_NONE ? &data[card[F_PTH] + i] : NULL;
+    station = card[F_CN] != F_NONE ? &data[card[F_CN] + i] : NULL;
+    decode_punch(time_day, time, station, &out->punches[p]);
 
     i += card[F_PL];
   }
+
+  return 0;
 }

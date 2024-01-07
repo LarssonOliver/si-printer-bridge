@@ -16,9 +16,17 @@
 #define C_SI9_DET 0xE8  // Detect SI6 (inserted)
 #define C_SI_REM 0xE7   // SI card removed
 #define C_GET_TIME 0xF7 // Get station time
+#define C_GET_SI5 0xB1  // Get SI5 card data
+#define C_GET_SI6 0xE1  // Get SI6 card data
+#define C_GET_SI9 0xEF  // Get SI9 card data
+
+// Protocol parameters
+#define P_SI6_CB 0x08 // SI6 card blocks
 
 #define CRC_BITF 0x8000
 #define CRC_POLY 0x8005
+
+#define MAX_PUNCHES 64 // SI6 and SI10
 
 enum card_field {
   F_CN2 = 0, // card number byte 2
@@ -45,16 +53,17 @@ enum card_field {
   F_PTH,     // punchtime high byte offset in punch record
   F_PTL,     // punchtime low byte offset in punch record
   F_BC,      // number of blocks on card
+  F_RF,      // number of read frames for card
 };
 
 // Field does not exist on this card type
 #define F_NONE 0xFF
 
-typedef uint8_t card_def_t[24];
+typedef uint8_t si_card_def_t[25];
 
-extern const card_def_t SI5;
-extern const card_def_t SI6;
-extern const card_def_t SI8;
-extern const card_def_t SI9;
-extern const card_def_t pCard;
-extern const card_def_t SI10; // Also SI11
+extern const si_card_def_t SI5;
+extern const si_card_def_t SI6;
+extern const si_card_def_t SI8;
+extern const si_card_def_t SI9;
+extern const si_card_def_t pCard;
+extern const si_card_def_t SI10; // Also SI11

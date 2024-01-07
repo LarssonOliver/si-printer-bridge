@@ -17,7 +17,7 @@ int si_decode_station_reply(const uint8_t *const buf,
 
 typedef struct {
   int card_number;
-  const card_def_t *card_def;
+  const si_card_def_t *card_def;
 } si_card_t;
 
 // Decodes information of an inserted card.
@@ -28,3 +28,35 @@ int si_decode_det(const si_station_reply_t *const reply, si_card_t *const out);
 // Returns the length of the command on success, -1 on failure.
 int si_build_command(uint8_t command_code, const uint8_t *params,
                      uint8_t params_len, uint8_t *out, uint8_t out_size);
+
+// Generates a command to read the card.
+// Returns the length of the command on success, -1 on failure.
+int si_build_read_command(si_card_t *card, uint8_t *out, uint8_t out_size);
+
+// Generates the next command in the sequence.
+// Modifies the command in place.
+// Returns the length of the command on success, -1 on failure, 0 on end of
+// sequence.
+int si_build_next_read_command(si_card_t *card, uint8_t *out, uint8_t out_size);
+
+typedef long long si_time_t;
+
+typedef struct {
+  int station;
+  si_time_t time;
+} si_punch_t;
+
+typedef struct {
+  int card_number;
+  si_punch_t start;
+  si_punch_t finish;
+  si_punch_t check;
+  si_punch_t clear;
+  unsigned int punch_count;
+  si_punch_t punches[MAX_PUNCHES];
+} si_card_readout_t;
+
+// Decodes a card readout. The decoded data is stored in out.
+// Returns 0 on success, -1 on failure.
+int si_decode_carddata(const si_card_def_t card, const uint8_t *data,
+                       si_card_readout_t *const out);

@@ -13,6 +13,8 @@
 // TODO: Watchdog stuff.
 // TODO: Check if station is in readout mode on connect.
 // TODO: Check if connected usb device is a (correct) SI station.
+// TODO: Check that station is in extended command mode.
+// TODO: Check BAUD rates?
 
 void core1_main(void) {
   sleep_ms(10);
