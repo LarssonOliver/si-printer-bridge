@@ -161,7 +161,7 @@ static void collect_read_data(const uint8_t *data, uint32_t len) {
   console_printf("  Punch count: %u\r\n", s_card_readout.punch_count);
 
   for (unsigned int i = 0; i < s_card_readout.punch_count; i++) {
-    console_printf("  Punch %u: %u\r\n", i + 1,
+    console_printf("  Punch %u: (%u)\r\n", i + 1,
                    s_card_readout.punches[i].station);
   }
 }

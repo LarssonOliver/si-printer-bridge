@@ -39,7 +39,12 @@ int si_build_read_command(si_card_t *card, uint8_t *out, uint8_t out_size);
 // sequence.
 int si_build_next_read_command(si_card_t *card, uint8_t *out, uint8_t out_size);
 
-typedef long long si_time_t;
+// This struct could be reduced in size.
+typedef struct {
+  uint8_t is_detailed : 1;
+  uint8_t day_of_week : 7;
+  uint32_t seconds_since_midnight : (8 * 3); // Only 17 bits are required.
+} si_time_t;
 
 typedef struct {
   int station;

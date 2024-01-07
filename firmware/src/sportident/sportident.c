@@ -295,11 +295,36 @@ static int decode_station_number(const uint8_t raw, const uint8_t ptd) {
 
 // Decode a time from a raw value.
 // Returns 0 on success, -1 on failure.
-static int decode_time(const uint16_t raw, si_time_t *out) {
-  if (out == NULL)
-    return 0;
+static int decode_time(const uint16_t raw, const uint8_t *raw_ptd,
+                       si_time_t *out) {
+  if (out == NULL || raw == TIME_RESET)
+    return -1;
 
-  (void)raw;
+  // Documentation of the PTD byte from SportIdent
+  // bit 0 - am/pm
+  // bit 3...1 - day of week, 000 = Sunday, 110 = Saturday
+  // bit 5...4 - week counter 0...3, relative
+  // bit 7...6 - control station code number high
+  // (...511)
+  // week counter is not used!
+
+  uint32_t punch_time = raw;
+  uint8_t detailed = 0;
+  uint8_t day_of_week = 0;
+
+  if (raw_ptd != NULL) {
+    detailed = 1;
+
+    if (*raw_ptd & 0b1) // If PM
+      punch_time += 12 * 60 * 60;
+
+    day_of_week = (*raw_ptd & 0b1110) >> 1;
+  }
+
+  out->is_detailed = detailed;
+  out->day_of_week = day_of_week;
+  out->seconds_since_midnight = punch_time;
+
   return 0;
 }
 
@@ -316,7 +341,7 @@ static int decode_punch(const uint8_t *punch_time_day,
   const int station_code = decode_station_number(*station, time_day);
 
   si_time_t time;
-  if (decode_time(punch_time[0] << 8 | punch_time[1], &time))
+  if (decode_time(punch_time[0] << 8 | punch_time[1], punch_time_day, &time))
     return -1;
 
   out->station = station_code;

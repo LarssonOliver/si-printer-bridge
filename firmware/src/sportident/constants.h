@@ -28,6 +28,8 @@
 
 #define MAX_PUNCHES 64 // SI6 and SI10
 
+#define TIME_RESET 0xEEEE
+
 enum card_field {
   F_CN2 = 0, // card number byte 2
   F_CN1,     // card number byte 1
