@@ -48,8 +48,8 @@ enum card_field {
   F_P1,      // first punch
   F_PL,      // punch data length in bytes
   F_PM,      // punch maximum (punches 31-36 have no time)
-  F_CN,      // control number offset in punch record
   F_PTD,     // punchtime day byte offset in punch record
+  F_CN,      // control number offset in punch record
   F_PTH,     // punchtime high byte offset in punch record
   F_PTL,     // punchtime low byte offset in punch record
   F_BC,      // number of blocks on card

@@ -1,9 +1,9 @@
 #include "constants.h"
 
 const si_card_def_t SI5 = {
-    6,      4,      5,      F_NONE, F_NONE, 19,     F_NONE, F_NONE, 21,
-    F_NONE, F_NONE, 25,     F_NONE, F_NONE, F_NONE, 23,     32,     3,
-    30,     0,      F_NONE, 1,      2,      F_NONE, 1,
+    6,      4,      5,  F_NONE, F_NONE, 19,     F_NONE, F_NONE, 21,
+    F_NONE, F_NONE, 25, F_NONE, F_NONE, F_NONE, 23,     32,     3,
+    30,     F_NONE, 0,  1,      2,      F_NONE, 1,
 };
 
 const si_card_def_t SI6 = {
