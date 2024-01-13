@@ -35,6 +35,13 @@
 
 // TODO
 // #define CFG_TUH_VENDOR 1
+// #define CFG_TUH_API_EDPT_XFER 1
 
 #define BOARD_TUD_RHPORT 0
 #define BOARD_TUH_RHPORT CFG_TUH_RPI_PIO_USB
+
+// Device vendor and product IDs.
+#define SI_BSF8_VID 0x10C4
+#define SI_BSF8_PID 0x800A
+#define SI_PRINTER_VID 0x0416
+#define SI_PRINTER_PID 0x5011

@@ -19,6 +19,7 @@ add_executable(si-printer
     ./src/main.c
     ./src/console.c
     ./src/devices.c
+    ./src/printer.c
     ./src/data_processor.c
     ./src/sportident/sportident.c
     ./src/sportident/constants.c

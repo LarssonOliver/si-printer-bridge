@@ -6,6 +6,7 @@
 
 #include "console.h"
 #include "devices.h"
+#include "printer.h"
 
 static input_callback_t input_callback = NULL;
 
@@ -40,6 +41,8 @@ uint32_t devices_write(uint8_t idx, const void *buf, uint32_t size) {
 // -- TUSB Callbacks --
 //
 
+// -- CDC --
+
 void tuh_cdc_mount_cb(uint8_t idx) {
   // Set the baudrate of the SI reader station
   tuh_cdc_set_baudrate(idx, 38400, NULL, 0);
@@ -64,4 +67,34 @@ void tuh_cdc_rx_cb(uint8_t idx) {
 
   if (input_callback != NULL)
     input_callback(buf, count);
+}
+
+// -- RAW --
+
+void tuh_mount_cb(uint8_t dev_addr) {
+  console_printf("Device %u mounted\r\n", dev_addr);
+
+  tusb_desc_device_t desc_device;
+  if (tuh_descriptor_get_device_sync(
+          dev_addr, &desc_device, sizeof(desc_device)) != XFER_RESULT_SUCCESS) {
+    console_printf("Failed to get device descriptor\r\n");
+    return;
+  }
+
+  console_printf("  VID: 0x%04x\r\n", desc_device.idVendor);
+  console_printf("  PID: 0x%04x\r\n", desc_device.idProduct);
+
+  if (desc_device.idVendor == SI_PRINTER_VID &&
+      desc_device.idProduct == SI_PRINTER_PID) {
+
+    if (printer_init(dev_addr) != 0) {
+      console_printf("Failed to initialize printer\r\n");
+      // Handle this?
+      return;
+    }
+  }
+
+  // console_printf("  VID: %04x\r\n", desc_device.idVendor);
+  // console_printf("  PID: %04x\r\n", desc_device.idProduct);
+  // console_printf("  PID: %04x\r\n", desc_device.);
 }
