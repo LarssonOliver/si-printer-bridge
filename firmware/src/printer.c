@@ -2,10 +2,13 @@
 #include <tusb.h>
 
 #include "console.h"
+#include "host/usbh.h"
 #include "printer.h"
 
 // Only allow printing if initialized.
 static int s_initialized = 0;
+
+static uint8_t tmp_buffer[64] = "Hello\r\n";
 
 static uint16_t count_interface_total_len(const tusb_desc_interface_t *desc_itf,
                                           uint8_t itf_count, uint16_t max_len);
@@ -99,12 +102,57 @@ static uint16_t count_interface_total_len(const tusb_desc_interface_t *desc_itf,
   return len;
 }
 
+static void xfer_complete_callback(tuh_xfer_t *xfer) {
+  (void)xfer;
+  console_printf("Xfer complete\r\n");
+}
+
 static int open_printer_interface(uint8_t dev_addr,
                                   const tusb_desc_interface_t *desc_itf,
                                   uint16_t max_len) {
-  (void)dev_addr;
-  (void)desc_itf;
-  (void)max_len;
+  const uint16_t drv_len =
+      sizeof(tusb_desc_interface_t) +
+      desc_itf->bNumEndpoints * sizeof(tusb_desc_endpoint_t);
+
+  if (drv_len > max_len)
+    return -1;
+
+  const uint8_t *p_desc = (const uint8_t *)desc_itf;
+
+  p_desc = tu_desc_next(p_desc);
+  const tusb_desc_endpoint_t *desc_ep = (const tusb_desc_endpoint_t *)p_desc;
+
+  for (int i = 0; i < desc_itf->bNumEndpoints; i++) {
+    console_printf("1\r\n");
+    if (desc_ep->bDescriptorType != TUSB_DESC_ENDPOINT)
+      return -1;
+
+    console_printf("Dir = %d\r\n", tu_edpt_dir(desc_ep->bEndpointAddress));
+    if (tu_edpt_dir(desc_ep->bEndpointAddress) == TUSB_DIR_OUT) {
+      console_printf("3\r\n");
+      if (!tuh_edpt_open(dev_addr, desc_ep))
+        return -1;
+      console_printf("4\r\n");
+
+      tuh_xfer_t xfer = {
+          .daddr = dev_addr,
+          .ep_addr = desc_ep->bEndpointAddress,
+          .buflen = sizeof(tmp_buffer),
+          .buffer = tmp_buffer,
+          .complete_cb = xfer_complete_callback,
+          .user_data = (uintptr_t)tmp_buffer,
+      };
+
+      int res = tuh_edpt_xfer(&xfer);
+      console_printf("Xfer result: %d\r\n", res);
+    }
+
+    p_desc = tu_desc_next(p_desc);
+    desc_ep = (const tusb_desc_endpoint_t *)p_desc;
+  }
+
+  console_printf("    Found printer interface, len = %u, type = %u\r\n",
+                 p_desc[0], p_desc[1]);
 
   return 0;
 }
