@@ -33,8 +33,6 @@
 #define CFG_TUH_CDC_CP210X_PID_LIST \
   0xEA60, 0xEA70, 0x800A
 
-// TODO
-// #define CFG_TUH_VENDOR 1
 #define CFG_TUH_API_EDPT_XFER 1
 
 #define BOARD_TUD_RHPORT 0
