@@ -30,26 +30,6 @@ int console_printf(const char *format, ...) {
   return tud_cdc_write_str(buf);
 }
 
-/* void tud_cdc_rx_cb(uint8_t itf) { */
-/*   // Forward anything arriving from PC serial to device. */
-/*   (void)itf; */
-
-/*   char buf[64 + 1]; // For extra null terminator. */
-/*   uint32_t const bufsize = sizeof(buf) - 1; */
-
-/*   uint32_t count = tud_cdc_read(buf, bufsize); */
-/*   buf[count] = 0; */
-
-/*   console_printf("Writing %u bytes: ", (unsigned int)count); */
-/*   for (uint i = 0; i < count; i++) */
-/*     console_printf("%02x", buf[i]); */
-
-/*   console_printf("\r\n"); */
-
-/*   tuh_cdc_write(0, buf, count); */
-/*   tuh_cdc_write_flush(0); */
-/* } */
-
 // Device Descriptor
 
 // Default from TinyUSB
