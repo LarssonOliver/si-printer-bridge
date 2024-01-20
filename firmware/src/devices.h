@@ -12,4 +12,4 @@ void devices_tick(void);
 void devices_register_input_callback(input_callback_t cb);
 
 // Write to a device. Returns the number of bytes written.
-uint32_t devices_write(uint8_t idx, const void *buf, uint32_t size);
+uint32_t devices_reader_write(const void *buf, uint32_t size);

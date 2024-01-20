@@ -101,7 +101,7 @@ static void send_next_read_command(void) {
   if (s_next_read_command_len == 0)
     return;
 
-  devices_write(0, s_next_read_command, s_next_read_command_len);
+  devices_reader_write(s_next_read_command, s_next_read_command_len);
 
   s_next_read_command_len = si_build_next_read_command(
       &s_card, s_next_read_command, sizeof(s_next_read_command));
