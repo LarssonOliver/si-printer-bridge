@@ -104,10 +104,48 @@ int printer_init(uint8_t dev_addr) {
   return 0;
 }
 
+static void compute_time_diff(const si_time_t *start, const si_time_t *end,
+                              int *out_minutes, uint *out_seconds) {
+
+  if (!start || !end || !out_minutes || !out_seconds)
+    return;
+
+  uint half_day_deltas = 0;
+
+  if (start->is_detailed && end->is_detailed) {
+    char day_delta = end->day_of_week - start->day_of_week % 7;
+    day_delta = day_delta < 0 ? day_delta + 7 : day_delta;
+    half_day_deltas = day_delta * 2;
+  } else {
+    if (end->seconds_since_midnight < start->seconds_since_midnight)
+      half_day_deltas = 1;
+  }
+
+  uint seconds = end->seconds_since_midnight - start->seconds_since_midnight;
+  seconds += half_day_deltas * 12 * 60 * 60;
+
+  *out_minutes = (seconds / 60);
+  *out_seconds = seconds % 60;
+}
+
+static void decode_time(const si_time_t *time, uint *out_hours,
+                        int *out_minutes, uint *out_seconds) {
+
+  if (!time || !out_hours || !out_minutes || !out_seconds)
+    return;
+
+  *out_hours = time->seconds_since_midnight / (60 * 60);
+  *out_minutes = (time->seconds_since_midnight / 60) % 60;
+  *out_seconds = time->seconds_since_midnight % 60;
+}
+
 // Print a card readout. Returns 0 on success.
 int printer_print(const si_card_readout_t *readout) {
   if (!s_initialized)
     return -1;
+
+  uint hours, seconds;
+  int minutes;
 
   s_printed = 0;
   write_command(&s_printed, PRINTER_INIT);
@@ -122,16 +160,32 @@ int printer_print(const si_card_readout_t *readout) {
   s_print_buffer[s_printed++] = PRINTER_MODE_BOLD | PRINTER_MODE_DHEIGHT;
   write(&s_printed, "Resultat:  ");
 
+  compute_time_diff(&readout->start.time, &readout->finish.time, &minutes,
+                    &seconds);
+
   write_command(&s_printed, PRINTER_MODE_SET);
   s_print_buffer[s_printed++] =
       PRINTER_MODE_DWIDTH | PRINTER_MODE_DHEIGHT | PRINTER_MODE_BOLD;
-  write(&s_printed, "%d:%02d\n", 0, 0);
+  write(&s_printed, "%+d:%02d\n", minutes, seconds);
 
   write_command(&s_printed, PRINTER_MODE_SET);
   s_print_buffer[s_printed++] = 0;
 
-  write(&s_printed, "Starttid:  %02d:%02d:%02d\n", 0, 0, 0);
-  write(&s_printed, "M\x86ltid:    %02d:%02d:%02d\n", 0, 0, 0);
+  write(&s_printed, "Starttid:  ");
+  if (1) {
+    decode_time(&readout->start.time, &hours, &minutes, &seconds);
+    write(&s_printed, "%02d:%02d:%02d\n", hours, minutes, seconds);
+  } else {
+    write(&s_printed, "--\n");
+  }
+
+  write(&s_printed, "M\x86ltid:    ");
+  if (1) {
+    decode_time(&readout->finish.time, &hours, &minutes, &seconds);
+    write(&s_printed, "%02d:%02d:%02d\n", hours, minutes, seconds);
+  } else {
+    write(&s_printed, "--\n");
+  }
 
   write_command(&s_printed, PRINTER_FEED);
   s_print_buffer[s_printed++] = 1;
@@ -142,7 +196,22 @@ int printer_print(const si_card_readout_t *readout) {
         "Totaltid");
   write(&s_printed, "--------------------------------\n");
 
-  // TODO  Split times...
+  for (uint i = 0; i < readout->punch_count; i++) {
+    char buf[12];
+    const si_punch_t *punch = &readout->punches[i];
+
+    snprintf(buf, sizeof(buf), "%2d(%d)", i + 1, punch->station);
+    write(&s_printed, "%-10s ", buf);
+
+
+
+    // snprintf(buf, sizeof(buf), "%+02d:%02d", punch->time.seconds / 3600,
+    //        (punch->time.seconds / 60) % 60, punch->time.seconds % 60);
+
+
+
+  }
+
   write(&s_printed, "%-10s %10s %10s\n", "M\x86l", "00:00:00", "00:00:00");
   write_command(&s_printed, PRINTER_FEED);
   s_print_buffer[s_printed++] = 1;
