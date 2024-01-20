@@ -16,6 +16,8 @@ void devices_init(void) {
                 &pio_config);
 
   tuh_init(BOARD_TUH_RHPORT);
+
+  pio_usb_host_add_port(8, PIO_USB_PINOUT_DPDM);
 }
 
 void devices_tick(void) { tuh_task(); }
@@ -48,7 +50,7 @@ void tuh_cdc_mount_cb(uint8_t idx) {
   tuh_cdc_set_baudrate(idx, 38400, NULL, 0);
 
   // Not sure if this is needed.
-  // tuh_cdc_set_control_line_state(idx, 0b11, NULL, 0);
+  tuh_cdc_set_control_line_state(idx, 0b11, NULL, 0);
 }
 
 void tuh_cdc_rx_cb(uint8_t idx) {
@@ -93,8 +95,4 @@ void tuh_mount_cb(uint8_t dev_addr) {
       return;
     }
   }
-
-  // console_printf("  VID: %04x\r\n", desc_device.idVendor);
-  // console_printf("  PID: %04x\r\n", desc_device.idProduct);
-  // console_printf("  PID: %04x\r\n", desc_device.);
 }

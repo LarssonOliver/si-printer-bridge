@@ -30,8 +30,8 @@
 
 #define CFG_TUH_MEM_ALIGN __attribute__((aligned(4)))
 
-#define CFG_TUH_CDC_CP210X_PID_LIST \
-  0xEA60, 0xEA70, 0x800A
+// Only allowing the BSF8 mini reader to be recognized.
+#define CFG_TUH_CDC_CP210X_PID_LIST SI_SBF8_PID
 
 #define CFG_TUH_API_EDPT_XFER 1
 
