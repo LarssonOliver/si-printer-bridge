@@ -5,6 +5,7 @@
 
 #include "console.h"
 #include "devices.h"
+#include "printer.h"
 #include "usb.h"
 
 #include "sportident/sportident.h"
@@ -164,4 +165,7 @@ static void collect_read_data(const uint8_t *data, uint32_t len) {
     console_printf("  Punch %u: (%u)\r\n", i + 1,
                    s_card_readout.punches[i].station);
   }
+
+  // Send for printing.
+  printer_print(&s_card_readout);
 }
