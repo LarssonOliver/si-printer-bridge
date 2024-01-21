@@ -1,3 +1,15 @@
+/*
+ * constants.c
+ *
+ * This file is part of si-printer.
+ *
+ * This file is a reimplementation of per-magnusson/sportident-python.
+ * per-magnusson/sportident-python is licensed under the terms of the
+ * GNU General Public License, version 3.0 (GPL-3.0). A copy of the GPL-3.0
+ * can be found in the accompanying LICENSE file or at
+ * https://www.gnu.org/licenses/.
+ */
+
 #include "constants.h"
 
 const si_card_def_t SI5 = {
