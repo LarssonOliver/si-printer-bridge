@@ -1,6 +1,7 @@
 #include <tusb.h>
 #include <pico/multicore.h>
 #include <pico/stdlib.h>
+#include <hardware/watchdog.h>
 
 #include "console.h"
 #include "devices.h"
@@ -22,11 +23,13 @@ void core1_main(void) {
   devices_init();
   devices_register_input_callback(on_data_received);
 
-  while (true) {
-    devices_tick();
+  watchdog_enable(1000, true);
 
-    if (tuh_cdc_mounted(0) && tuh_cdc_read_available(0) > 0)
-      console_printf("%u bytes available\r\n", (unsigned int)tuh_cdc_read_available(0));
+  while (true) {
+    // This core does most of the work.
+    watchdog_update();
+
+    devices_tick();
 
     sleep_ms(1);
   }
@@ -44,7 +47,7 @@ int main(void) {
 
   while (true) {
     console_tick();
-    sleep_ms(1);
+    sleep_ms(10);
   }
 
   return 0;

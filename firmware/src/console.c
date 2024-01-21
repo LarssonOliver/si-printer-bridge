@@ -28,6 +28,7 @@ int console_printf(const char *format, ...) {
   va_end(argptr);
 
   return tud_cdc_write_str(buf);
+  sleep_ms(1);
 }
 
 // Device Descriptor

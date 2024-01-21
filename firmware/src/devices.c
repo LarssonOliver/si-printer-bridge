@@ -77,6 +77,8 @@ void tuh_mount_cb(uint8_t dev_addr) {
 // -- CDC --
 
 void tuh_cdc_mount_cb(uint8_t idx) {
+  console_printf("CDC Device %u mounted\r\n", idx);
+
   // Set the baudrate of the SI reader station
   tuh_cdc_set_baudrate(idx, 38400, NULL, 0);
 
