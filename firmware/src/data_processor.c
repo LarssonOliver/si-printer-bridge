@@ -23,10 +23,14 @@ static int s_read_data_size = 0;
 static uint8_t s_next_read_command[16];
 static int s_next_read_command_len = 0;
 
+static uint8_t s_printing = 0;
+void printing_done_cb(void) { s_printing = 0; }
+
 // Function prototypes
 static void handle_data(const uint8_t *data, uint32_t len);
 static void read_card(void);
 static void collect_read_data(const uint8_t *data, uint32_t len);
+static void send_ack(void);
 
 // This function is called when a new data is received from the
 // serial port. The data is stored in the buffer pointed by data
@@ -102,6 +106,7 @@ static void send_next_read_command(void) {
   if (s_next_read_command_len == 0)
     return;
 
+
   devices_reader_write(s_next_read_command, s_next_read_command_len);
 
   s_next_read_command_len = si_build_next_read_command(
@@ -111,6 +116,12 @@ static void send_next_read_command(void) {
 static void read_card(void) {
   if (s_card.card_number == 0 || s_card.card_def == (void *)0)
     return;
+
+  if (s_printing) {
+    console_printf("Printing in progress, not reading card.\r\n");
+    send_ack();
+    return;
+  }
 
   s_next_read_command_len = si_build_read_command(&s_card, s_next_read_command,
                                                   sizeof(s_next_read_command));
@@ -143,6 +154,8 @@ static void collect_read_data(const uint8_t *data, uint32_t len) {
     return;
   }
 
+  send_ack();
+
   console_printf("All data gathered, length: %u\r\n", s_read_data_size);
 
   if (si_decode_carddata(*s_card.card_def, s_read_data_buffer,
@@ -152,7 +165,8 @@ static void collect_read_data(const uint8_t *data, uint32_t len) {
   }
 
   console_printf("Card readout:\r\n");
-  console_printf("  Card number: %u\r\n", s_card_readout.card_number);
+  console_printf("  Card number: %u\r\n",
+                 (unsigned int)s_card_readout.card_number);
 
   console_printf("  Start station: %u\r\n", s_card_readout.start.station);
   console_printf("  Finish station: %u\r\n", s_card_readout.finish.station);
@@ -161,11 +175,13 @@ static void collect_read_data(const uint8_t *data, uint32_t len) {
 
   console_printf("  Punch count: %u\r\n", s_card_readout.punch_count);
 
-  for (unsigned int i = 0; i < s_card_readout.punch_count; i++) {
-    console_printf("  Punch %u: (%u)\r\n", i + 1,
-                   s_card_readout.punches[i].station);
-  }
-
   // Send for printing.
+  printer_register_done_cb(printing_done_cb);
   printer_print(&s_card_readout);
+}
+
+static void send_ack(void) {
+  uint8_t command[12];
+  int len = si_build_command(ACK, NULL, 0, command, sizeof(command));
+  devices_reader_write(command, len);
 }

@@ -1,6 +1,7 @@
 #include <stdint.h>
 #include <string.h>
 
+#include "../console.h"
 #include "constants.h"
 #include "sportident.h"
 
@@ -334,18 +335,26 @@ static int decode_punch(const uint8_t *punch_time_day,
                         const uint8_t *punch_time, const uint8_t *station,
                         si_punch_t *const out) {
 
-  if (out == NULL || punch_time == NULL || station == NULL)
+  if (out == NULL || punch_time == NULL) {
+    out->is_punched = 0;
     return -1;
+  }
 
   const uint8_t time_day = punch_time_day == NULL ? 0 : *punch_time_day;
-  const int station_code = decode_station_number(*station, time_day);
+  int station_code = 0;
+  if (station != NULL)
+    station_code = decode_station_number(*station, time_day);
 
   si_time_t time;
-  if (decode_time(punch_time[0] << 8 | punch_time[1], punch_time_day, &time))
+  if (decode_time(punch_time[0] << 8 | punch_time[1], punch_time_day, &time)) {
+    out->is_punched = 0;
     return -1;
+  }
 
   out->station = station_code;
   memcpy(&out->time, &time, sizeof(time));
+
+  out->is_punched = 1;
 
   return 0;
 }
@@ -388,6 +397,8 @@ int si_decode_carddata(const si_card_def_t card, const uint8_t *data,
     time = card[F_LT] != F_NONE ? &data[card[F_LT]] : NULL;
     station = card[F_LN] != F_NONE ? &data[card[F_LN]] : NULL;
     decode_punch(time_day, time, station, &out->clear);
+  } else {
+    out->clear.is_punched = 0;
   }
 
   uint8_t record_count = data[card[F_RC]];

@@ -47,12 +47,13 @@ typedef struct {
 } si_time_t;
 
 typedef struct {
-  int station;
+  uint8_t is_punched : 1;
+  uint32_t station : sizeof(uint32_t) * 8 - 1;
   si_time_t time;
 } si_punch_t;
 
 typedef struct {
-  int card_number;
+  int32_t card_number;
   si_punch_t start;
   si_punch_t finish;
   si_punch_t check;

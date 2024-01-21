@@ -34,6 +34,7 @@ static int s_initialized = 0;
 static tuh_xfer_t s_xfer = {0};
 static uint8_t s_print_buffer[2048];
 static int s_printed = 0;
+static void (*s_done_cb)(void) = NULL;
 
 void printer_xfer_callback(tuh_xfer_t *xfer);
 
@@ -113,7 +114,9 @@ static void compute_time_diff(const si_time_t *start, const si_time_t *end,
   uint half_day_deltas = 0;
 
   if (start->is_detailed && end->is_detailed) {
-    char day_delta = end->day_of_week - start->day_of_week % 7;
+    short end_day = end->day_of_week;
+    short start_day = start->day_of_week;
+    short day_delta = end_day - start_day % 7;
     day_delta = day_delta < 0 ? day_delta + 7 : day_delta;
     half_day_deltas = day_delta * 2;
   } else {
@@ -141,18 +144,20 @@ static void decode_time(const si_time_t *time, uint *out_hours,
 
 // Print a card readout. Returns 0 on success.
 int printer_print(const si_card_readout_t *readout) {
-  if (!s_initialized)
-    return -1;
-
   uint hours, seconds;
   int minutes;
 
   s_printed = 0;
   write_command(&s_printed, PRINTER_INIT);
 
-  // TODO Title...
+  write_command(&s_printed, PRINTER_MODE_SET);
+  s_print_buffer[s_printed++] = PRINTER_MODE_DHEIGHT;
+  write(&s_printed, "%ld\n", (long int)readout->card_number);
 
-  write(&s_printed, "Bricknr: %u\n", readout->card_number);
+  write_command(&s_printed, PRINTER_MODE_SET);
+  s_print_buffer[s_printed++] = 0;
+
+  write(&s_printed, "Bricknr: %ld\n", (long int)readout->card_number);
   write_command(&s_printed, PRINTER_FEED);
   s_print_buffer[s_printed++] = 1; // Feed 1 line.
 
@@ -166,25 +171,37 @@ int printer_print(const si_card_readout_t *readout) {
   write_command(&s_printed, PRINTER_MODE_SET);
   s_print_buffer[s_printed++] =
       PRINTER_MODE_DWIDTH | PRINTER_MODE_DHEIGHT | PRINTER_MODE_BOLD;
-  write(&s_printed, "%+d:%02d\n", minutes, seconds);
+  if (readout->start.is_punched && readout->finish.is_punched) {
+    write(&s_printed, "%d:%02d\n", minutes, seconds);
+    console_printf("  Result: %d:%02d\r\n", minutes, seconds);
+  } else {
+    write(&s_printed, "--\n");
+    console_printf("  Result: --\r\n");
+  }
 
   write_command(&s_printed, PRINTER_MODE_SET);
   s_print_buffer[s_printed++] = 0;
 
   write(&s_printed, "Starttid:  ");
-  if (1) {
+  console_printf("  Start time: ");
+  if (readout->start.is_punched) {
     decode_time(&readout->start.time, &hours, &minutes, &seconds);
     write(&s_printed, "%02d:%02d:%02d\n", hours, minutes, seconds);
+    console_printf("%02d:%02d:%02d\r\n", hours, minutes, seconds);
   } else {
     write(&s_printed, "--\n");
+    console_printf("--\r\n");
   }
 
   write(&s_printed, "M\x86ltid:    ");
-  if (1) {
+  console_printf("  Finish time: ");
+  if (readout->finish.is_punched) {
     decode_time(&readout->finish.time, &hours, &minutes, &seconds);
     write(&s_printed, "%02d:%02d:%02d\n", hours, minutes, seconds);
+    console_printf("%02d:%02d:%02d\r\n", hours, minutes, seconds);
   } else {
     write(&s_printed, "--\n");
+    console_printf("--\r\n");
   }
 
   write_command(&s_printed, PRINTER_FEED);
@@ -197,31 +214,80 @@ int printer_print(const si_card_readout_t *readout) {
   write(&s_printed, "--------------------------------\n");
 
   for (uint i = 0; i < readout->punch_count; i++) {
-    char buf[12];
+    char buf[14];
     const si_punch_t *punch = &readout->punches[i];
 
-    snprintf(buf, sizeof(buf), "%2d(%d)", i + 1, punch->station);
+    snprintf(buf, sizeof(buf), "%2d(%d)", i + 1, (short)punch->station);
     write(&s_printed, "%-10s ", buf);
+    console_printf("  %-10s ", buf);
 
+    const si_punch_t *diff_start = &readout->start;
+    if (i > 0)
+      diff_start = &readout->punches[i - 1];
+    if (diff_start->is_punched && punch->is_punched) {
+      compute_time_diff(&diff_start->time, &punch->time, &minutes, &seconds);
+      snprintf(buf, sizeof(buf), "%+02d:%02d", minutes, seconds);
+    } else {
+      snprintf(buf, sizeof(buf), "--");
+    }
+    write(&s_printed, "%10s ", buf);
+    console_printf("%10s ", buf);
 
-
-    // snprintf(buf, sizeof(buf), "%+02d:%02d", punch->time.seconds / 3600,
-    //        (punch->time.seconds / 60) % 60, punch->time.seconds % 60);
-
-
-
+    if (readout->start.is_punched && punch->is_punched) {
+      compute_time_diff(&readout->start.time, &punch->time, &minutes, &seconds);
+      snprintf(buf, sizeof(buf), "%02d:%02d", minutes, seconds);
+      write(&s_printed, "%10s\n", buf);
+      console_printf("%10s\r\n", buf);
+    } else {
+      write(&s_printed, "%10s\n", "--");
+      console_printf("%10s\r\n", "--");
+    }
   }
 
-  write(&s_printed, "%-10s %10s %10s\n", "M\x86l", "00:00:00", "00:00:00");
+  write(&s_printed, "%-10s ", "M\x86l");
+  console_printf("  %-10s ", "Finish");
+
+  char buf[14];
+
+  const si_punch_t *diff_start = &readout->start;
+  if (readout->punch_count > 0)
+    diff_start = &readout->punches[readout->punch_count - 1];
+
+  if (diff_start->is_punched && readout->finish.is_punched) {
+    compute_time_diff(&diff_start->time, &readout->finish.time, &minutes,
+                      &seconds);
+    snprintf(buf, sizeof(buf), "%+02d:%02d", minutes, seconds);
+  } else {
+    snprintf(buf, sizeof(buf), "--");
+  }
+  write(&s_printed, "%10s ", buf);
+  console_printf("%10s ", buf);
+
+  if (readout->start.is_punched && readout->finish.is_punched) {
+    compute_time_diff(&readout->start.time, &readout->finish.time, &minutes,
+                      &seconds);
+    snprintf(buf, sizeof(buf), "%02d:%02d", minutes, seconds);
+    write(&s_printed, "%10s\n", buf);
+    console_printf("%10s\r\n", buf);
+  } else {
+    write(&s_printed, "%10s\n", "--");
+    console_printf("%10s\r\n", "--");
+  }
+
   write_command(&s_printed, PRINTER_FEED);
   s_print_buffer[s_printed++] = 1;
 
-  write_command(&s_printed, PRINTER_JUSTIFICATION);
-  s_print_buffer[s_printed++] = PRINTER_JUSTIFICATION_CENTER;
-  write(&s_printed, "Final text here.\n");
+  // write_command(&s_printed, PRINTER_JUSTIFICATION);
+  // s_print_buffer[s_printed++] = PRINTER_JUSTIFICATION_CENTER;
+  // write(&s_printed, "Final text here.\n");
 
   write_command(&s_printed, PRINTER_FEED);
   s_print_buffer[s_printed++] = 2;
+
+  memset(&s_print_buffer[s_printed], 0, sizeof(s_print_buffer) - s_printed);
+
+  if (!s_initialized)
+    return -1;
 
   s_xfer.user_data = USB_FRAME_SIZE;
   s_xfer.buffer = s_print_buffer;
@@ -242,8 +308,14 @@ void printer_xfer_callback(tuh_xfer_t *xfer) {
     xfer->buflen = USB_FRAME_SIZE;
     xfer->user_data = sent + USB_FRAME_SIZE;
     tuh_edpt_xfer(xfer);
+  } else {
+    if (s_done_cb)
+      s_done_cb();
   }
 }
+
+// Register a callback to be called when the printer is done printing.
+void printer_register_done_cb(void (*cb)(void)) { s_done_cb = cb; }
 
 //
 // STATIC FUNCITONS
