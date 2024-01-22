@@ -1,3 +1,4 @@
+#include <pico/multicore.h>
 #include <pico/unique_id.h>
 #include <stdarg.h>
 #include <stdio.h>
@@ -5,16 +6,23 @@
 
 #include "console.h"
 
+#define CONSOLE_BUF_SIZE 256
+
+static char s_tx_buf[CONSOLE_BUF_SIZE];
+static uint s_tx_buf_count = 0;
+auto_init_mutex(s_tx_mutex);
+
+static void transmit_buffered(void);
+
 void console_init(void) { tud_init(BOARD_TUD_RHPORT); }
 
 void console_tick(void) {
   if (!tud_inited())
     return;
 
+  transmit_buffered();
   tud_task();
 }
-
-#define CONSOLE_BUF_SIZE 256
 
 int console_printf(const char *format, ...) {
   if (!tud_inited())
@@ -23,12 +31,38 @@ int console_printf(const char *format, ...) {
   va_list argptr;
   va_start(argptr, format);
 
-  char buf[CONSOLE_BUF_SIZE];
-  vsnprintf(buf, CONSOLE_BUF_SIZE, format, argptr);
+  mutex_enter_blocking(&s_tx_mutex);
+
+  int written = vsnprintf(&s_tx_buf[s_tx_buf_count],
+                          CONSOLE_BUF_SIZE - s_tx_buf_count, format, argptr);
+  s_tx_buf_count += written;
+
+  mutex_exit(&s_tx_mutex);
+
   va_end(argptr);
 
-  return tud_cdc_write_str(buf);
-  sleep_ms(1);
+  return written;
+}
+
+static void transmit_buffered(void) {
+  if (!tud_inited())
+    return;
+
+  if (mutex_try_enter(&s_tx_mutex, NULL)) {
+
+    if (s_tx_buf_count > 0) {
+      uint count = tud_cdc_write(s_tx_buf, s_tx_buf_count);
+
+      if (count > 0) {
+        s_tx_buf_count -= count;
+        memmove(s_tx_buf, &s_tx_buf[count], s_tx_buf_count);
+      }
+    }
+
+    mutex_exit(&s_tx_mutex);
+  }
+
+  tud_cdc_write_flush();
 }
 
 // Device Descriptor
