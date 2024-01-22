@@ -3,5 +3,6 @@ Rpi Pico-based simple offline printer.
 
 ## Circuit Diagram
 
-![Circuit Diagram](./docs/img/circuit.svg)
-
+<p align="center">
+  <img color="red" alt="Circuit Diagram" src="./docs/img/circuit.svg" />
+</p>
