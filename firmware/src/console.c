@@ -8,13 +8,15 @@
 
 #define CONSOLE_BUF_SIZE 256
 
-static char s_tx_buf[CONSOLE_BUF_SIZE];
-static uint s_tx_buf_count = 0;
+static volatile char s_tx_buf[CONSOLE_BUF_SIZE];
+static volatile uint s_tx_buf_count = 0;
 auto_init_mutex(s_tx_mutex);
 
 static void transmit_buffered(void);
 
 void console_init(void) { tud_init(BOARD_TUD_RHPORT); }
+
+bool console_is_connected(void) { return tud_cdc_connected(); }
 
 void console_tick(void) {
   if (!tud_inited())
@@ -33,7 +35,7 @@ int console_printf(const char *format, ...) {
 
   mutex_enter_blocking(&s_tx_mutex);
 
-  int written = vsnprintf(&s_tx_buf[s_tx_buf_count],
+  int written = vsnprintf((char *)&s_tx_buf[s_tx_buf_count],
                           CONSOLE_BUF_SIZE - s_tx_buf_count, format, argptr);
   s_tx_buf_count += written;
 
@@ -51,11 +53,11 @@ static void transmit_buffered(void) {
   if (mutex_try_enter(&s_tx_mutex, NULL)) {
 
     if (s_tx_buf_count > 0) {
-      uint count = tud_cdc_write(s_tx_buf, s_tx_buf_count);
+      uint count = tud_cdc_write((char *)s_tx_buf, s_tx_buf_count);
 
       if (count > 0) {
         s_tx_buf_count -= count;
-        memmove(s_tx_buf, &s_tx_buf[count], s_tx_buf_count);
+        memmove((char *)s_tx_buf, (const char *)&s_tx_buf[count], s_tx_buf_count);
       }
     }
 

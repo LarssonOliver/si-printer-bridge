@@ -1,11 +1,11 @@
-#include <tusb.h>
+#include <hardware/watchdog.h>
 #include <pico/multicore.h>
 #include <pico/stdlib.h>
-#include <hardware/watchdog.h>
+#include <tusb.h>
 
 #include "console.h"
-#include "devices.h"
 #include "data_processor.h"
+#include "devices.h"
 
 // REF:
 // https://github.dev/sekigon-gonnoc/Pico-PIO-USB/blob/main/examples/host_hid_to_device_cdc
@@ -47,7 +47,9 @@ int main(void) {
 
   while (true) {
     console_tick();
-    sleep_ms(10);
+
+    if (!console_is_connected())
+      sleep_ms(10);
   }
 
   return 0;
