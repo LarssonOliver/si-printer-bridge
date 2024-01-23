@@ -1,6 +1,7 @@
 #include <hardware/watchdog.h>
 #include <pico/multicore.h>
 #include <pico/stdlib.h>
+#include <pico/time.h>
 #include <tusb.h>
 
 #include "console.h"
@@ -20,10 +21,12 @@
 void core1_main(void) {
   sleep_ms(10);
 
+  watchdog_enable(1000, true);
+
   devices_init();
   devices_register_input_callback(on_data_received);
 
-  watchdog_enable(1000, true);
+  bool second_init = false;
 
   while (true) {
     // This core does most of the work.
@@ -31,7 +34,13 @@ void core1_main(void) {
 
     devices_tick();
 
-    sleep_ms(1);
+    if (!second_init) {
+      absolute_time_t time = get_absolute_time();
+      if (to_ms_since_boot(time) > 1000) {
+        devices_init2();
+        second_init = true;
+      }
+    }
   }
 }
 

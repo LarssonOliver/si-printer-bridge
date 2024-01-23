@@ -5,7 +5,11 @@
 // Callback that is called when input is received from a device.
 typedef void (*input_callback_t)(const uint8_t *buf, uint32_t size);
 
+// Initialize USB host driver.
 void devices_init(void);
+// Initialize the 2nd USB port, should be called about 1s after devices_init.
+void devices_init2(void);
+
 void devices_tick(void);
 
 // Register a callback that will be called when input is received from a device.

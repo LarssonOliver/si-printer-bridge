@@ -18,9 +18,9 @@ void devices_init(void) {
                 &pio_config);
 
   tuh_init(BOARD_TUH_RHPORT);
-
-  pio_usb_host_add_port(8, PIO_USB_PINOUT_DPDM);
 }
+
+void devices_init2(void) { pio_usb_host_add_port(8, PIO_USB_PINOUT_DPDM); }
 
 void devices_tick(void) { tuh_task(); }
 
@@ -35,7 +35,7 @@ uint32_t devices_reader_write(const void *buf, uint32_t size) {
   uint32_t written = tuh_cdc_write(s_reader_id, buf, size);
   tuh_cdc_write_flush(s_reader_id);
 
-  console_printf("%u: Wrote %u bytes: ", s_reader_id, (unsigned int)written);
+  console_printf("Wrote    %u bytes: ", (unsigned int)written);
   for (uint i = 0; i < size; i++)
     console_printf("%02x", ((uint8_t *)buf)[i]);
 

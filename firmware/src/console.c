@@ -30,6 +30,9 @@ int console_printf(const char *format, ...) {
   if (!tud_inited())
     return -1;
 
+  if (!console_is_connected())
+    return 0;
+
   va_list argptr;
   va_start(argptr, format);
 
