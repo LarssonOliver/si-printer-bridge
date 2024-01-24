@@ -11,10 +11,22 @@ GNU General Public License along with this program. If not, see
 All reimplementation of sportident-python may be found in the
 [sportident](./src/sportident/) directory.
 
+## Submodules
+
+This firmware has a number of dependencies, linked as git submoduels
+in the [./vendor](./vendor/) directory.
+
+```bash
+$ tree vendor -d -L 1
+vendor
+├── Pico-PIO-USB
+├── pico-sdk
+└── tinyusb
+```
+
 ## Compile
 
-To compile a custom version, install the Pico SDK and Arm GNU Toolchain.
-Set the `PICO_SDK_PATH` environment variable to the SDK directory.
+To compile a custom version, install the Arm GNU tool chain.
 Append the Arm `bin` directory to the `PATH` environment variable.
 The firmware can then be prepared and compiled with:
 
@@ -25,7 +37,7 @@ cmake --build build
 
 ## Install
 
-Hold down the `BOOTSEL` button on the Pico while plugging in the USB cable.
+Hold the `BOOTSEL` button pressed on the Pico while plugging in the USB cable.
 It should show up as a USB storage device. Drag-and-drop the `uf2` binary from
 the build directory onto the device. The Pico should automatically restart and
 run the firmware.
