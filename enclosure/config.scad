@@ -1,0 +1,1 @@
+WALL_THICKNESS = 2.0;
