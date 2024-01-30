@@ -16,18 +16,18 @@
  * si-printer. If not, see <https://www.gnu.org/licenses/>.
  */
 
-// This module is a model of
-// https://www.electrokit.com/en/product/usb-b-hona-monterad-pa-kort/
-module usb_a_female_pcb()
+// Model of a RPI Pico Rev3 board
+// https://www.raspberrypi.com/products/raspberry-pi-pico/
+module rpi_pico()
 {
     // PCB
-    PCB_THICKNESS = 1.6;
-    PCB_WIDTH = 17.0;
-    PCB_DEPTH = 17.0;
-    PCB_Y_OFFSET = 6.0;
-    PCB_HOLE_DIAMETER = 3.0;
-    PCB_HOLE_DISTANCE = 12.0;
-    PCB_HOLE_Y_OFFSET = 11.0;
+    PCB_THICKNESS = 1.0;
+    PCB_WIDTH = 21.0;
+    PCB_DEPTH = 51.0;
+    PCB_Y_OFFSET = 1.3;
+    PCB_HOLE_DIAMETER = 2.1;
+    PCB_HOLE_DISTANCE = 11.4;
+    PCB_HOLE_Y_OFFSET = 2.0;
 
     translate([ 0, 0, PCB_THICKNESS ])
     {
@@ -38,24 +38,20 @@ module usb_a_female_pcb()
                 cylinder(d = PCB_HOLE_DIAMETER, h = PCB_THICKNESS + 1, $fn = 32);
             translate([ -PCB_HOLE_DISTANCE / 2, PCB_Y_OFFSET + PCB_HOLE_Y_OFFSET, -(PCB_THICKNESS + .5) ])
                 cylinder(d = PCB_HOLE_DIAMETER, h = PCB_THICKNESS + 1, $fn = 32);
-        }
-
-        translate([ -13.1 / 2, 14 - 5, 0 ]) cube([ 13.1, 5, 7 ]);
-        translate([ -13.1 / 2, 14 - 5, 0 ]) cube([ 13.1, 5, 7 ]);
-
-        difference()
-        {
-            translate([ -13.1 / 2, 0, 7 - 5.75 ]) cube([ 13.1, 14, 5.75 ]);
-            translate([ -12.5 / 2, -.1, 7 - 5.75 + (5.75 - 5.1) / 2 ]) cube([ 12.5, 10.1, 5.1 ]);
+            translate([ PCB_HOLE_DISTANCE / 2, PCB_Y_OFFSET + PCB_DEPTH - PCB_HOLE_Y_OFFSET, -(PCB_THICKNESS + .5) ])
+                cylinder(d = PCB_HOLE_DIAMETER, h = PCB_THICKNESS + 1, $fn = 32);
+            translate([ -PCB_HOLE_DISTANCE / 2, PCB_Y_OFFSET + PCB_DEPTH - PCB_HOLE_Y_OFFSET, -(PCB_THICKNESS + .5) ])
+                cylinder(d = PCB_HOLE_DIAMETER, h = PCB_THICKNESS + 1, $fn = 32);
         }
     }
 };
 
-module usb_a_standoffs(inset_diameter = 3.0, wall_thickness = 1.2, height = 5)
+module rpi_pico_standoffs(inset_diameter = 2.0, wall_thickness = 1.2, height = 5)
 {
-    PCB_Y_OFFSET = 6.0;
-    PCB_HOLE_DISTANCE = 12.0;
-    PCB_HOLE_Y_OFFSET = 11.0;
+    PCB_DEPTH = 51.0;
+    PCB_Y_OFFSET = 1.3;
+    PCB_HOLE_DISTANCE = 11.4;
+    PCB_HOLE_Y_OFFSET = 2.0;
 
     translate([ PCB_HOLE_DISTANCE / 2, PCB_Y_OFFSET + PCB_HOLE_Y_OFFSET, 0 ]) difference()
     {
@@ -67,9 +63,14 @@ module usb_a_standoffs(inset_diameter = 3.0, wall_thickness = 1.2, height = 5)
         translate([ 0, 0, -height ]) cylinder(d = inset_diameter + 2 * wall_thickness, h = height, $fn = 32);
         translate([ 0, 0, -(height + .5) ]) cylinder(d = inset_diameter, h = height + 1, $fn = 32);
     }
-};
-
-module usb_a_cutout(thickness = 10)
-{
-    translate([ -15 / 2, -thickness, 1.6 + .5 ]) cube([ 15, thickness + 4, 7.5 ]);
-};
+    translate([ PCB_HOLE_DISTANCE / 2, PCB_Y_OFFSET + PCB_DEPTH - PCB_HOLE_Y_OFFSET, 0 ]) difference()
+    {
+        translate([ 0, 0, -height ]) cylinder(d = inset_diameter + 2 * wall_thickness, h = height, $fn = 32);
+        translate([ 0, 0, -(height + .5) ]) cylinder(d = inset_diameter, h = height + 1, $fn = 32);
+    }
+    translate([ -PCB_HOLE_DISTANCE / 2, PCB_Y_OFFSET + PCB_DEPTH - PCB_HOLE_Y_OFFSET, 0 ]) difference()
+    {
+        translate([ 0, 0, -height ]) cylinder(d = inset_diameter + 2 * wall_thickness, h = height, $fn = 32);
+        translate([ 0, 0, -(height + .5) ]) cylinder(d = inset_diameter, h = height + 1, $fn = 32);
+    }
+}
