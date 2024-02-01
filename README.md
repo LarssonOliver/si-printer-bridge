@@ -36,10 +36,22 @@ As for cards, they *should* all work. Validated ones are listed here.
 
 Here is a list of materials used to create a SI-Printer.
 
-**TODO**
+| **Component** | **Qty** | **Note** |
+|---|---|---|
+| Raspberry PI Pico | 1 | Can be W variant |
+| Green LED Diode | 1 | 5mm diameter |
+| Yellow LED Diode | 1 | 5mm diameter |
+| USB-A female breakout | 2 | |
+| Breakout board USB-C | 1 | [Polulu 3411](https://www.pololu.com/product/3411) |
+| 220Ω Resistor | 4 | |
+
+## Updating Device Firmware
+
+See [the updating-firmware.md](./docs/updating-firmware.md) document for 
+update instructions.
 
 ## Circuit Diagram
 
 <p align="center">
-  <img color="red" alt="Circuit Diagram" src="./docs/img/circuit.svg" />
+  <img alt="Circuit Diagram" src="./docs/img/circuit.svg" />
 </p>
