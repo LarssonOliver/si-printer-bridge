@@ -1,10 +1,10 @@
-# SI-Printer
+# si-printer-bridge
 
-SI-Printer is a simple system that aims to reduce complexity and hassle when
+si-printer-bridge is a simple system that aims to reduce complexity and hassle when
 using the [SPORTident](https://www.sportident.com/) timing system during 
 orienteering practice sessions.
 
-SI-Printer allows a reader station to be connected directly to a thermal 
+si-printer-bridge allows a reader station to be connected directly to a thermal 
 printer without the use of an android phone with bluetooth or similar. The 
 entire system may be powered using a conventional USB power bank.
 
@@ -34,7 +34,7 @@ As for cards, they *should* all work. Validated ones are listed here.
 
 ## Materials
 
-Here is a list of materials used to create a SI-Printer.
+Here is a list of materials used to create a si-printer-bridge.
 
 | **Component** | **Qty** | **Note** |
 |---|---|---|

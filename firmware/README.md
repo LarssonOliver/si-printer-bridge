@@ -1,4 +1,4 @@
-# SI-Printer Firmware
+# si-printer-bridge Firmware
 
 Firmware written in C built for the Raspberry Pi Pico.
 
@@ -45,7 +45,7 @@ run the firmware.
 Alternatively, install `picotool` and run:
 
 ```bash
-picotool load build/si-printer.uf2 --force
+picotool load build/si-printer-bridge.uf2 --force
 picotool reboot
 ```
 
