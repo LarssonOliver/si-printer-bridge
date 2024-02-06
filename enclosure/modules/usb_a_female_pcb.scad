@@ -51,7 +51,7 @@ module usb_a_female_pcb()
     }
 };
 
-module usb_a_standoffs(inset_diameter = 3.0, wall_thickness = 1.2, height = 5)
+module usb_a_standoffs(inset_diameter = 4.0, wall_thickness = 1.6, height = 5)
 {
     PCB_Y_OFFSET = 6.0;
     PCB_HOLE_DISTANCE = 12.0;

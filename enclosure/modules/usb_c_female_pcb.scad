@@ -58,7 +58,7 @@ module usb_c_female_pcb()
     }
 };
 
-module usb_c_standoffs(inset_diameter = 2.0, wall_thickness = 1.2, height = 5)
+module usb_c_standoffs(inset_diameter = 2.9, wall_thickness = 1.6, height = 5)
 {
     PCB_Y_OFFSET = 1.0;
     PCB_HOLE_DISTANCE = 15.2;
