@@ -36,6 +36,7 @@ add_executable(si-printer-bridge
     ./src/console.c
     ./src/devices.c
     ./src/printer.c
+    ./src/led.c
     ./src/data_processor.c
     ./src/sportident/sportident.c
     ./src/sportident/constants.c

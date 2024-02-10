@@ -25,6 +25,7 @@
 #include "devices.h"
 #include "printer.h"
 #include "usb.h"
+#include "led.h"
 
 #include "sportident/sportident.h"
 
@@ -102,6 +103,7 @@ static void handle_data(const uint8_t *data, uint32_t len) {
     s_card.card_number = 0;
     s_card.card_def = (void *)0;
     s_next_read_command_len = 0;
+    led_set(LED_INFO, false);
     break;
 
   case C_GET_SI5:
@@ -146,6 +148,7 @@ static void read_card(void) {
 
   s_read_data_size = 0;
   send_next_read_command();
+  led_set(LED_INFO, true);
 }
 
 static void collect_read_data(const uint8_t *data, uint32_t len) {
@@ -172,6 +175,7 @@ static void collect_read_data(const uint8_t *data, uint32_t len) {
     return;
   }
 
+  led_set(LED_INFO, false);
   send_ack();
 
   console_printf("All data gathered, length: %u\r\n", s_read_data_size);

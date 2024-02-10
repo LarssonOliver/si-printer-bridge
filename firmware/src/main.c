@@ -25,6 +25,7 @@
 #include "console.h"
 #include "data_processor.h"
 #include "devices.h"
+#include "led.h"
 
 // REF:
 // https://github.dev/sekigon-gonnoc/Pico-PIO-USB/blob/main/examples/host_hid_to_device_cdc
@@ -71,6 +72,9 @@ int main(void) {
   multicore_launch_core1(core1_main);
 
   console_init();
+
+  led_init();
+  led_set(LED_POWER, true);
 
   while (true) {
     console_tick();
