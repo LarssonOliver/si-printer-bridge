@@ -26,13 +26,15 @@ module box()
 {
     difference()
     {
-        translate([ -WALL_THICKNESS, -WALL_THICKNESS, -WALL_THICKNESS ]) 
-        union() {
-            translate([0, WALL_THICKNESS + CORNER_INSET_SIZE / 2, 0])cube([
-                INTERNAL_WIDTH + 2 * WALL_THICKNESS, INTERNAL_DEPTH - CORNER_INSET_SIZE, INTERNAL_HEIGHT + WALL_THICKNESS
+        translate([ -WALL_THICKNESS, -WALL_THICKNESS, -WALL_THICKNESS ]) union()
+        {
+            translate([ 0, WALL_THICKNESS + CORNER_INSET_SIZE / 2, 0 ]) cube([
+                INTERNAL_WIDTH + 2 * WALL_THICKNESS, INTERNAL_DEPTH - CORNER_INSET_SIZE, INTERNAL_HEIGHT +
+                WALL_THICKNESS
             ]);
-            translate([WALL_THICKNESS + CORNER_INSET_SIZE / 2, 0, 0]) cube([
-                INTERNAL_WIDTH - CORNER_INSET_SIZE, INTERNAL_DEPTH + 2 * WALL_THICKNESS, INTERNAL_HEIGHT + WALL_THICKNESS
+            translate([ WALL_THICKNESS + CORNER_INSET_SIZE / 2, 0, 0 ]) cube([
+                INTERNAL_WIDTH - CORNER_INSET_SIZE, INTERNAL_DEPTH + 2 * WALL_THICKNESS, INTERNAL_HEIGHT +
+                WALL_THICKNESS
             ]);
         };
         cube([ INTERNAL_WIDTH, INTERNAL_DEPTH, INTERNAL_HEIGHT + .1 ]);
@@ -53,25 +55,26 @@ module box()
     translate([ CORNER_INSET_SIZE / 2, CORNER_INSET_SIZE / 2, -WALL_THICKNESS ]) difference()
     {
         cylinder(d = 2 * WALL_THICKNESS + CORNER_INSET_SIZE, h = INTERNAL_HEIGHT + WALL_THICKNESS, $fn = 32);
-        translate([0, 0, WALL_THICKNESS]) cylinder(d = CORNER_INSET_SIZE, h = INTERNAL_HEIGHT + 1, $fn = 32);
+        translate([ 0, 0, WALL_THICKNESS ]) cylinder(d = CORNER_INSET_SIZE, h = INTERNAL_HEIGHT + 1, $fn = 32);
     }
 
     translate([ INTERNAL_WIDTH - CORNER_INSET_SIZE / 2, CORNER_INSET_SIZE / 2, -WALL_THICKNESS ]) difference()
     {
         cylinder(d = 2 * WALL_THICKNESS + CORNER_INSET_SIZE, h = INTERNAL_HEIGHT + WALL_THICKNESS, $fn = 32);
-        translate([0, 0, WALL_THICKNESS]) cylinder(d = CORNER_INSET_SIZE, h = INTERNAL_HEIGHT + 1, $fn = 32);
+        translate([ 0, 0, WALL_THICKNESS ]) cylinder(d = CORNER_INSET_SIZE, h = INTERNAL_HEIGHT + 1, $fn = 32);
     }
 
     translate([ CORNER_INSET_SIZE / 2, INTERNAL_DEPTH - CORNER_INSET_SIZE / 2, -WALL_THICKNESS ]) difference()
     {
         cylinder(d = 2 * WALL_THICKNESS + CORNER_INSET_SIZE, h = INTERNAL_HEIGHT + WALL_THICKNESS, $fn = 32);
-        translate([0, 0, WALL_THICKNESS]) cylinder(d = CORNER_INSET_SIZE, h = INTERNAL_HEIGHT + 1, $fn = 32);
+        translate([ 0, 0, WALL_THICKNESS ]) cylinder(d = CORNER_INSET_SIZE, h = INTERNAL_HEIGHT + 1, $fn = 32);
     }
 
-    translate([ INTERNAL_WIDTH - CORNER_INSET_SIZE / 2, INTERNAL_DEPTH - CORNER_INSET_SIZE / 2, -WALL_THICKNESS ]) difference()
+    translate([ INTERNAL_WIDTH - CORNER_INSET_SIZE / 2, INTERNAL_DEPTH - CORNER_INSET_SIZE / 2, -WALL_THICKNESS ])
+        difference()
     {
         cylinder(d = 2 * WALL_THICKNESS + CORNER_INSET_SIZE, h = INTERNAL_HEIGHT + WALL_THICKNESS, $fn = 32);
-        translate([0, 0, WALL_THICKNESS]) cylinder(d = CORNER_INSET_SIZE, h = INTERNAL_HEIGHT + 1, $fn = 32);
+        translate([ 0, 0, WALL_THICKNESS ]) cylinder(d = CORNER_INSET_SIZE, h = INTERNAL_HEIGHT + 1, $fn = 32);
     }
 
     // Standoffs
@@ -90,19 +93,20 @@ module lid()
 {
     difference()
     {
-        union() {
+        union()
+        {
             translate([ CORNER_INSET_SIZE / 2, -WALL_THICKNESS, 0 ])
                 cube([ INTERNAL_WIDTH - CORNER_INSET_SIZE, INTERNAL_DEPTH + 2 * WALL_THICKNESS, WALL_THICKNESS ]);
             translate([ -WALL_THICKNESS, CORNER_INSET_SIZE / 2, 0 ])
                 cube([ INTERNAL_WIDTH + 2 * WALL_THICKNESS, INTERNAL_DEPTH - CORNER_INSET_SIZE, WALL_THICKNESS ]);
 
-            translate([CORNER_INSET_SIZE / 2, CORNER_INSET_SIZE / 2, 0])
+            translate([ CORNER_INSET_SIZE / 2, CORNER_INSET_SIZE / 2, 0 ])
                 cylinder(d = 2 * WALL_THICKNESS + CORNER_INSET_SIZE, h = WALL_THICKNESS, $fn = 32);
-            translate([INTERNAL_WIDTH - CORNER_INSET_SIZE / 2, CORNER_INSET_SIZE / 2, 0])
+            translate([ INTERNAL_WIDTH - CORNER_INSET_SIZE / 2, CORNER_INSET_SIZE / 2, 0 ])
                 cylinder(d = 2 * WALL_THICKNESS + CORNER_INSET_SIZE, h = WALL_THICKNESS, $fn = 32);
-            translate([INTERNAL_WIDTH - CORNER_INSET_SIZE / 2, INTERNAL_DEPTH - CORNER_INSET_SIZE / 2, 0])
+            translate([ INTERNAL_WIDTH - CORNER_INSET_SIZE / 2, INTERNAL_DEPTH - CORNER_INSET_SIZE / 2, 0 ])
                 cylinder(d = 2 * WALL_THICKNESS + CORNER_INSET_SIZE, h = WALL_THICKNESS, $fn = 32);
-            translate([CORNER_INSET_SIZE / 2, INTERNAL_DEPTH - CORNER_INSET_SIZE / 2, 0])
+            translate([ CORNER_INSET_SIZE / 2, INTERNAL_DEPTH - CORNER_INSET_SIZE / 2, 0 ])
                 cylinder(d = 2 * WALL_THICKNESS + CORNER_INSET_SIZE, h = WALL_THICKNESS, $fn = 32);
         };
 
