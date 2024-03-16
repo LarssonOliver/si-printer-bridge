@@ -55,3 +55,10 @@ update instructions.
 <p align="center">
   <img alt="Circuit Diagram" src="./docs/img/circuit.svg" />
 </p>
+
+## Assembled Unit
+
+<p align="center">
+  <img alt="Assembled Unit" src="./docs/img/assembled_unit.png" />
+</p>
+
