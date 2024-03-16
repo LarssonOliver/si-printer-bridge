@@ -84,7 +84,7 @@ module box()
 
     translate([ INTERNAL_WIDTH - 20, -2, STANDOFF_HEIGHT ]) usb_a_standoffs(height = STANDOFF_HEIGHT);
     translate([ INTERNAL_WIDTH - 45, -2, STANDOFF_HEIGHT ]) usb_a_standoffs(height = STANDOFF_HEIGHT);
-    translate([ -.5, 20, STANDOFF_HEIGHT ]) rotate(90, [ 0, 0, -1 ]) usb_c_standoffs(height = STANDOFF_HEIGHT);
+    translate([ -1, 20, STANDOFF_HEIGHT ]) rotate(90, [ 0, 0, -1 ]) usb_c_standoffs(height = STANDOFF_HEIGHT);
 }
 
 translate([ WALL_THICKNESS, WALL_THICKNESS, WALL_THICKNESS ]) box();
@@ -136,6 +136,6 @@ if (SHOW_COMPONENTS)
         translate([ INTERNAL_WIDTH - 20, -2, STANDOFF_HEIGHT ]) usb_a_female_pcb();
         translate([ INTERNAL_WIDTH - 45, -2, STANDOFF_HEIGHT ]) usb_a_female_pcb();
 
-        translate([ -.5, 20, STANDOFF_HEIGHT ]) rotate(90, [ 0, 0, -1 ]) usb_c_female_pcb();
+        translate([ -1, 20, STANDOFF_HEIGHT ]) rotate(90, [ 0, 0, -1 ]) usb_c_female_pcb();
     }
 }
