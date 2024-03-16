@@ -24,6 +24,11 @@ vendor
 └── tinyusb
 ```
 
+To get the submodules after a fresh clone, use:
+```bash
+git submodule update --init
+```
+
 ## Compile
 
 To compile a custom version, install the Arm GNU tool chain.
@@ -48,4 +53,9 @@ Alternatively, install `picotool` and run:
 picotool load build/si-printer-bridge.uf2 --force
 picotool reboot
 ```
+
+## Clangd Language Server Config
+
+To ensure clangd can see the Arm toolchain, update [.clangd](./.clangd) with
+the appropriate path to ensure full LSP server support.
 
