@@ -3,14 +3,15 @@
  *
  * This file is part of si-printer-bridge.
  *
- * si-printer-bridge is free software: you can redistribute it and/or modify it under
- * the terms of the GNU General Public License as published by the Free Software
- * Foundation, either version 3 of the License, or (at your option) any later
- * version.
+ * si-printer-bridge is free software: you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation, either version 3 of the License, or (at your option) any
+ * later version.
  *
- * si-printer-bridge is distributed in the hope that it will be useful, but WITHOUT ANY
- * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+ * si-printer-bridge is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
  *
  * You should have received a copy of the GNU General Public License along with
  * si-printer-bridge. If not, see <https://www.gnu.org/licenses/>.
@@ -164,6 +165,15 @@ static void decode_time(const si_time_t *time, uint *out_hours,
 int printer_print(const si_card_readout_t *readout) {
   uint hours, seconds;
   int minutes;
+  bool use_first_punch_as_start = false;
+
+  if (!readout)
+    return -1;
+
+  // If the start is not punched, but there are punches, use the first punch as
+  // the start.
+  if (!readout->start.is_punched && readout->punch_count > 0)
+    use_first_punch_as_start = true;
 
   s_printed = 0;
   write_command(&s_printed, PRINTER_INIT);
@@ -183,13 +193,19 @@ int printer_print(const si_card_readout_t *readout) {
   s_print_buffer[s_printed++] = PRINTER_MODE_BOLD | PRINTER_MODE_DHEIGHT;
   write(&s_printed, "Resultat:  ");
 
-  compute_time_diff(&readout->start.time, &readout->finish.time, &minutes,
-                    &seconds);
+  if (use_first_punch_as_start) {
+    compute_time_diff(&readout->punches[0].time, &readout->finish.time,
+                      &minutes, &seconds);
+  } else {
+    compute_time_diff(&readout->start.time, &readout->finish.time, &minutes,
+                      &seconds);
+  }
 
   write_command(&s_printed, PRINTER_MODE_SET);
   s_print_buffer[s_printed++] =
       PRINTER_MODE_DWIDTH | PRINTER_MODE_DHEIGHT | PRINTER_MODE_BOLD;
-  if (readout->start.is_punched && readout->finish.is_punched) {
+  if ((readout->start.is_punched || use_first_punch_as_start) &&
+      readout->finish.is_punched) {
     write(&s_printed, "%d:%02d\n", minutes, seconds);
     console_printf("  Result: %d:%02d\r\n", minutes, seconds);
   } else {
@@ -251,8 +267,15 @@ int printer_print(const si_card_readout_t *readout) {
     write(&s_printed, "%10s ", buf);
     console_printf("%10s ", buf);
 
-    if (readout->start.is_punched && punch->is_punched) {
-      compute_time_diff(&readout->start.time, &punch->time, &minutes, &seconds);
+    if ((readout->start.is_punched || use_first_punch_as_start) &&
+        punch->is_punched) {
+      if (use_first_punch_as_start) {
+        compute_time_diff(&readout->punches[0].time, &punch->time, &minutes,
+                          &seconds);
+      } else {
+        compute_time_diff(&readout->start.time, &punch->time, &minutes,
+                          &seconds);
+      }
       snprintf(buf, sizeof(buf), "%02d:%02d", minutes, seconds);
       write(&s_printed, "%10s\n", buf);
       console_printf("%10s\r\n", buf);
@@ -281,9 +304,15 @@ int printer_print(const si_card_readout_t *readout) {
   write(&s_printed, "%10s ", buf);
   console_printf("%10s ", buf);
 
-  if (readout->start.is_punched && readout->finish.is_punched) {
-    compute_time_diff(&readout->start.time, &readout->finish.time, &minutes,
-                      &seconds);
+  if ((readout->start.is_punched || use_first_punch_as_start) &&
+      readout->finish.is_punched) {
+    if (use_first_punch_as_start) {
+      compute_time_diff(&readout->punches[0].time, &readout->finish.time,
+                        &minutes, &seconds);
+    } else {
+      compute_time_diff(&readout->start.time, &readout->finish.time, &minutes,
+                        &seconds);
+    }
     snprintf(buf, sizeof(buf), "%02d:%02d", minutes, seconds);
     write(&s_printed, "%10s\n", buf);
     console_printf("%10s\r\n", buf);
