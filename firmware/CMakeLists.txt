@@ -20,7 +20,7 @@ cmake_minimum_required(VERSION 3.20)
 include(${CMAKE_CURRENT_LIST_DIR}/vendor/pico-sdk/pico_sdk_init.cmake)
 
 # Project
-project(si-printer-bridge VERSION 1.0.0)
+project(si-printer-bridge VERSION 1.0.1)
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
